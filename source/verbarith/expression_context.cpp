@@ -13,10 +13,15 @@ namespace vra
         Z3_del_context(base_);
     }
 
-    _Z3_context* expression_context::instance() noexcept
+    expression_context const& expression_context::instance() noexcept
     {
         static expression_context const context;
-        return context.base_;
+        return context;
+    }
+
+    expression_context::operator _Z3_context*() const
+    {
+        return base_;
     }
 }
 
