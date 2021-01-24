@@ -1,3 +1,6 @@
+[submodule "submodule/stimpak"]
+	path = submodule/stimpak
+	url = https://github.com/superbr4in/stimpak.git
 [submodule "submodule/z3"]
 	path = submodule/z3
 	url = https://github.com/Z3Prover/z3.git
