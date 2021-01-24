@@ -18,6 +18,7 @@ namespace vra
 
         simplify();
     }
+
     template <sti::decayed_integral T>
     template <sti::decayed... Arguments>
     void expression<T>::apply(_Z3_ast* (* const make)(_Z3_context*, _Z3_ast*, Arguments...), Arguments... arguments)
@@ -31,6 +32,17 @@ namespace vra
         Z3_inc_ref(expression_context::instance(), base_);
 
         simplify();
+    }
+    template <sti::decayed_integral T>
+    void expression<T>::simplify()
+    {
+        auto* const simplified_base = Z3_simplify(expression_context::instance(), base_);
+
+        Z3_dec_ref(expression_context::instance(), base_);
+
+        base_ = simplified_base;
+
+        Z3_inc_ref(expression_context::instance(), base_);
     }
 
     template <sti::decayed_integral T>
@@ -328,18 +340,6 @@ namespace vra
     expression<T> operator>>(expression<T> a, expression<T> const& b)
     {
         return a >>= b;
-    }
-
-    template <sti::decayed_integral T>
-    void expression<T>::simplify()
-    {
-        auto* const simplified_base = Z3_simplify(expression_context::instance(), base_);
-
-        Z3_dec_ref(expression_context::instance(), base_);
-
-        base_ = simplified_base;
-
-        Z3_inc_ref(expression_context::instance(), base_);
     }
 
     template <sti::decayed_integral T>

@@ -2,7 +2,6 @@
 
 #include <stimpak/binary.hpp>
 #include <stimpak/conceptual.hpp>
-#include <stimpak/packing.hpp>
 
 #include <verbarith/expression_symbol.hpp>
 
@@ -31,8 +30,10 @@ namespace vra
 
         template <sti::decayed... Arguments>
         explicit expression(_Z3_ast* (*)(_Z3_context*, Arguments...), Arguments...);
+
         template <sti::decayed... Arguments>
         void apply(_Z3_ast* (*)(_Z3_context*, _Z3_ast*, Arguments...), Arguments...);
+        void simplify();
 
     public:
 
@@ -88,10 +89,6 @@ namespace vra
         expression& operator>>=(expression const&);
 
         friend std::ostream& operator<< <>(std::ostream&, expression const&);
-
-    private:
-
-        void simplify();
     };
 
     template <sti::decayed_integral T>
