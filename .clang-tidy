@@ -1,0 +1,37 @@
+Checks:
+>
+    *,
+    -cppcoreguidelines-avoid-magic-numbers,
+    -cppcoreguidelines-pro-bounds-constant-array-index,
+    -fuchsia-default-arguments-calls,
+    -fuchsia-default-arguments-declarations,
+    -fuchsia-overloaded-operator,
+    -fuchsia-trailing-return,
+    -hicpp-braces-around-statements,
+    -hicpp-move-const-arg,
+    -hicpp-special-member-functions,
+    -google-readability-braces-around-statements,
+    -google-readability-namespace-comments,
+    -google-readability-todo,
+    -llvm-header-guard,
+    -llvm-namespace-comment,
+    -llvmlibc-callee-namespace,
+    -modernize-use-trailing-return-type,
+    -readability-magic-numbers,
+
+CheckOptions:
+-
+    key:    cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor
+    value:  1
+-
+    key:    misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
+    value:  1
+-
+    key:    modernize-use-transparent-functors.SafeMode
+    value:  1
+-
+    key:    performance-move-const-arg.CheckTriviallyCopyableMove
+    value:  0
+-
+    key:    readability-braces-around-statements.ShortStatementLines
+    value:  2
