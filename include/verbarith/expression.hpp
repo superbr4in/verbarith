@@ -41,19 +41,14 @@ namespace vra
         explicit expression(expression_symbol const& symbol);
 
         template <sti::decayed_integral U>
+            requires (widthof(U) == widthof(T))
+        explicit expression(expression<U> const&);
+        template <sti::decayed_integral U>
             requires (widthof(U) > widthof(T))
         explicit expression(expression<U> const&);
         template <sti::decayed_integral U>
             requires (widthof(U) < widthof(T))
         explicit expression(expression<U> const&);
-
-        template <sti::decayed_integral U>
-            requires (widthof(U) <= widthof(T))
-        static expression join(std::array<expression<U>, widthof(T) / widthof(U)> const&);
-
-        template <sti::decayed_integral U, std::size_t POSITION>
-            requires (widthof(T) >= widthof(U) * (POSITION + 1))
-        [[nodiscard]] expression<U> extract() const;
 
         ~expression();
 
@@ -62,6 +57,14 @@ namespace vra
 
         expression(expression&&) noexcept;
         expression& operator=(expression&&) noexcept;
+
+        template <sti::decayed_integral U>
+            requires (widthof(U) <= widthof(T))
+        static expression join(std::array<expression<U>, widthof(T) / widthof(U)> const&);
+
+        template <sti::decayed_integral U, std::size_t POSITION>
+            requires (widthof(T) >= widthof(U) * (POSITION + 1))
+        [[nodiscard]] expression<U> extract() const;
 
         [[nodiscard]] bool is_conclusive() const;
         [[nodiscard]] T evaluate() const;

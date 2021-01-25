@@ -28,6 +28,9 @@ namespace vra
 }
 
 template class vra::expression_sort<bool         >;
+template class vra::expression_sort<std:: int8_t >;
 template class vra::expression_sort<std::uint8_t >;
+template class vra::expression_sort<std:: int16_t>;
 template class vra::expression_sort<std::uint16_t>;
+template class vra::expression_sort<std:: int32_t>;
 template class vra::expression_sort<std::uint32_t>;

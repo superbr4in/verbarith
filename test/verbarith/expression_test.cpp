@@ -5,10 +5,12 @@
 using namespace vra;
 
 // Type deduction
+static_assert(std::is_same_v<decltype(expression(true                          )), expression<bool          >>);
 static_assert(std::is_same_v<decltype(expression(false                         )), expression<bool          >>);
 static_assert(std::is_same_v<decltype(expression(static_cast<unsigned char >(0))), expression<unsigned char >>);
 static_assert(std::is_same_v<decltype(expression(static_cast<unsigned short>(0))), expression<unsigned short>>);
-static_assert(std::is_same_v<decltype(expression(static_cast<unsigned      >(0))), expression<unsigned      >>);
+static_assert(std::is_same_v<decltype(expression(static_cast<unsigned int  >(0))), expression<unsigned int  >>);
+static_assert(std::is_same_v<decltype(expression(static_cast<  signed int  >(0))), expression<  signed int  >>);
 
 TEST_CASE("Expression: Symbol requirements")
 {
@@ -103,7 +105,12 @@ TEST_CASE("Expression: Conclusiveness")
 TEST_CASE("Expression: Evaluation")
 {
     CHECK(expression<unsigned char>(0).evaluate() == 0);
+    CHECK(expression<  signed char>(0).evaluate() == 0);
+    CHECK(expression<unsigned char>(117).evaluate() == 117);
+    CHECK(expression<  signed char>(117).evaluate() == 117);
+    CHECK(expression<  signed char>(-44).evaluate() == -44);
     CHECK(expression(static_cast<unsigned char>(599)).evaluate() == 87);
+    CHECK(expression(static_cast<  signed char>(234)).evaluate() == -22);
     CHECK_THROWS_WITH(expression<unsigned char>("X").evaluate(), "Inconclusive evaluation");
 }
 
@@ -171,6 +178,15 @@ TEST_CASE("Expression: Conclusive LT")
     CHECK(expression(a).less_than(expression(b)).evaluate() == c);
 }
 
+TEST_CASE("Expression: Conclusive SLT")
+{
+    auto const a = static_cast<signed char>(GENERATE(range(0x00, 0x08), range(0xF8, 0x100)));
+    auto const b = static_cast<signed char>(GENERATE(range(0x00, 0x08), range(0xF8, 0x100)));
+    auto const c = a < b;
+
+    CHECK(expression(a).less_than(expression(b)).evaluate() == c);
+}
+
 TEST_CASE("Expression: Conclusive NEG")
 {
     auto const a = static_cast<unsigned char>(GENERATE(range(0x00, 0x08), range(0xF8, 0x100)));
@@ -223,6 +239,31 @@ TEST_CASE("Expression: Conclusive MOD")
     auto const a = static_cast<unsigned char>(GENERATE(range(0x00, 0x08), range(0xF8, 0x100)));
     auto const b = static_cast<unsigned char>(GENERATE(range(0x01, 0x08), range(0xF8, 0x100)));
     auto const c = static_cast<unsigned char>(a % b);
+
+    CHECK((expression(a) % expression(b)).evaluate() == c);
+}
+
+TEST_CASE("Expression: Conclusive SMUL")
+{
+    auto const a = static_cast<signed char>(GENERATE(range(0x00, 0x08), range(0xF8, 0x100)));
+    auto const b = static_cast<signed char>(GENERATE(range(0x00, 0x08), range(0xF8, 0x100)));
+    auto const c = static_cast<signed char>(a * b);
+
+    CHECK((expression(a) * expression(b)).evaluate() == c);
+}
+TEST_CASE("Expression: Conclusive SDIV")
+{
+    auto const a = static_cast<signed char>(GENERATE(range(0x00, 0x08), range(0xF8, 0x100)));
+    auto const b = static_cast<signed char>(GENERATE(range(0x01, 0x08), range(0xF8, 0x100)));
+    auto const c = static_cast<signed char>(a / b);
+
+    CHECK((expression(a) / expression(b)).evaluate() == c);
+}
+TEST_CASE("Expression: Conclusive SMOD")
+{
+    auto const a = static_cast<signed char>(GENERATE(range(0x00, 0x08), range(0xF8, 0x100)));
+    auto const b = static_cast<signed char>(GENERATE(range(0x01, 0x08), range(0xF8, 0x100)));
+    auto const c = static_cast<signed char>(a % b);
 
     CHECK((expression(a) % expression(b)).evaluate() == c);
 }
