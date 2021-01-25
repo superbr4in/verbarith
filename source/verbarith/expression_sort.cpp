@@ -34,3 +34,5 @@ template class vra::expression_sort<std:: int16_t>;
 template class vra::expression_sort<std::uint16_t>;
 template class vra::expression_sort<std:: int32_t>;
 template class vra::expression_sort<std::uint32_t>;
+template class vra::expression_sort<std:: int64_t>;
+template class vra::expression_sort<std::uint64_t>;
