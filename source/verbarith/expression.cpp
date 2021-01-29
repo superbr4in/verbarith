@@ -230,6 +230,25 @@ namespace vra
     }
 
     template <sti::decayed_integral T>
+    expression<T>& expression<T>::operator++()
+    {
+        expression<T> one(1);
+
+        apply(&Z3_mk_bvadd, one.base_);
+
+        return *this;
+    }
+    template <sti::decayed_integral T>
+    expression<T>& expression<T>::operator--()
+    {
+        expression<T> one(1);
+
+        apply(&Z3_mk_bvsub, one.base_);
+
+        return *this;
+    }
+
+    template <sti::decayed_integral T>
     expression<T>& expression<T>::operator+=(expression const& other)
     {
         apply(&Z3_mk_bvadd, other.base_);

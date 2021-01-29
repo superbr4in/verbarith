@@ -202,6 +202,21 @@ TEST_CASE("Expression: Conclusive NOT")
     CHECK((~expression(a)).evaluate() == b);
 }
 
+TEST_CASE("Expression: Conclusive INC")
+{
+    auto const a = static_cast<unsigned char>(GENERATE(range(0x00, 0x08), range(0xF8, 0x100)));
+    auto const b = static_cast<unsigned char>(a + 1);
+
+    CHECK((++expression(a)).evaluate() == b);
+}
+TEST_CASE("Expression: Conclusive DEC")
+{
+    auto const a = static_cast<unsigned char>(GENERATE(range(0x00, 0x08), range(0xF8, 0x100)));
+    auto const b = static_cast<unsigned char>(a - 1);
+
+    CHECK((--expression(a)).evaluate() == b);
+}
+
 TEST_CASE("Expression: Conclusive ADD")
 {
     auto const a = static_cast<unsigned char>(GENERATE(range(0x00, 0x08), range(0xF8, 0x100)));

@@ -24,7 +24,6 @@ namespace vra
         friend std::hash<expression>;
 
         template <sti::decayed_integral> friend class expression;
-        template <sti::decayed_integral, std::size_t> friend class expression_view;
 
         _Z3_ast* base_;
 
@@ -77,6 +76,9 @@ namespace vra
 
         [[nodiscard]] expression operator-() const;
         [[nodiscard]] expression operator~() const;
+
+        expression& operator++();
+        expression& operator--();
 
         expression& operator+=(expression const&);
         expression& operator-=(expression const&);
