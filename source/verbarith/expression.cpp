@@ -52,7 +52,7 @@ namespace vra
         Z3_inc_ref(expression_context::instance(), base_);
     }
     template <sti::decayed_integral T>
-    expression<T>::expression(expression_symbol const& symbol) :
+    expression<T>::expression(std::string const& symbol) :
         base_(Z3_mk_const(expression_context::instance(), Z3_mk_string_symbol(expression_context::instance(), symbol.c_str()), expression_sort<T>()))
     {
         if (symbol.empty() || std::isdigit(symbol.front()) != 0 || std::ranges::any_of(symbol, [](char const c) { return c == ' ' || std::isprint(c) == 0; }))

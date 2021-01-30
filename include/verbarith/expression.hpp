@@ -3,8 +3,6 @@
 #include <stimpak/binary.hpp>
 #include <stimpak/conceptual.hpp>
 
-#include <verbarith/expression_symbol.hpp>
-
 // NOLINTNEXTLINE [cert-dcl51-cpp]
 struct _Z3_ast;
 // NOLINTNEXTLINE [cert-dcl51-cpp]
@@ -37,7 +35,7 @@ namespace vra
     public:
 
         explicit expression(T value);
-        explicit expression(expression_symbol const& symbol);
+        explicit expression(std::string const& symbol);
 
         template <sti::decayed_integral U>
             requires (widthof(U) == widthof(T))
