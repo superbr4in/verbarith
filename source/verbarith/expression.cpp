@@ -1,29 +1,27 @@
 #include <algorithm>
-#include <ostream>
 
 #include <stimpak/fixed_algorithm.hpp>
 
 #include <verbarith/expression.hpp>
-#include <verbarith/expression_context.hpp>
-#include <verbarith/expression_sort.hpp>
+#include <verbarith/expression_sort.ipp>
 
 namespace vra
 {
-    template <sti::decayed_integral T>
-    template <sti::decayed... Arguments>
-    expression<T>::expression(_Z3_ast* (* const make)(_Z3_context*, Arguments...), Arguments... arguments) :
-        base_(make(expression_context::instance(), arguments...))
+    template <expression_typename T>
+    template <typename... Arguments, expression_maker<Arguments...> Maker>
+    expression<T>::expression(Maker&& maker, Arguments&&... arguments) :
+        base_(std::invoke(std::forward<Maker>(maker), expression_context::instance(), std::forward<Arguments>(arguments)...))
     {
         Z3_inc_ref(expression_context::instance(), base_);
 
         simplify();
     }
 
-    template <sti::decayed_integral T>
-    template <sti::decayed... Arguments>
-    void expression<T>::apply(_Z3_ast* (* const make)(_Z3_context*, _Z3_ast*, Arguments...), Arguments... arguments)
+    template <expression_typename T>
+    template <typename... Arguments, expression_maker<_Z3_ast*, Arguments...> Maker>
+    void expression<T>::apply(Maker&& maker, Arguments&&... arguments)
     {
-        auto* const new_base = make(expression_context::instance(), base_, arguments...);
+        auto* const new_base = std::invoke(std::forward<Maker>(maker), expression_context::instance(), base_, std::forward<Arguments>(arguments)...);
 
         Z3_dec_ref(expression_context::instance(), base_);
 
@@ -33,7 +31,7 @@ namespace vra
 
         simplify();
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     void expression<T>::simplify()
     {
         auto* const simplified_base = Z3_simplify(expression_context::instance(), base_);
@@ -45,15 +43,15 @@ namespace vra
         Z3_inc_ref(expression_context::instance(), base_);
     }
 
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T>::expression(T value) :
-        base_(Z3_mk_unsigned_int64(expression_context::instance(), static_cast<std::uint64_t>(value), expression_sort<T>()))
+        base_(Z3_mk_unsigned_int64(expression_context::instance(), static_cast<std::uint64_t>(value), expression_sort<widthof(T)>::instance()))
     {
         Z3_inc_ref(expression_context::instance(), base_);
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T>::expression(std::string const& symbol) :
-        base_(Z3_mk_const(expression_context::instance(), Z3_mk_string_symbol(expression_context::instance(), symbol.c_str()), expression_sort<T>()))
+        base_(Z3_mk_const(expression_context::instance(), Z3_mk_string_symbol(expression_context::instance(), symbol.c_str()), expression_sort<widthof(T)>::instance()))
     {
         if (symbol.empty() || std::isdigit(symbol.front()) != 0 || std::ranges::any_of(symbol, [](char const c) { return c == ' ' || std::isprint(c) == 0; }))
             throw std::invalid_argument("Invalid symbol");
@@ -61,41 +59,41 @@ namespace vra
         Z3_inc_ref(expression_context::instance(), base_);
     }
 
-    template <sti::decayed_integral T>
-    template <sti::decayed_integral U>
+    template <expression_typename T>
+    template <expression_typename U>
         requires (widthof(U) == widthof(T))
     expression<T>::expression(expression<U> const& other) :
         base_(other.base_)
     {
         Z3_inc_ref(expression_context::instance(), base_);
     }
-    template <sti::decayed_integral T> // NOLINT [cppcoreguidelines-pro-type-member-init]
-    template <sti::decayed_integral U>
+    template <expression_typename T> // NOLINT [cppcoreguidelines-pro-type-member-init]
+    template <expression_typename U>
         requires (widthof(U) > widthof(T))
     expression<T>::expression(expression<U> const& other) :
         expression(&Z3_mk_extract, unsigned{widthof(T) - 1}, unsigned{0}, other.base_)
     { }
-    template <sti::decayed_integral T> // NOLINT [cppcoreguidelines-pro-type-member-init]
-    template <sti::decayed_integral U>
+    template <expression_typename T> // NOLINT [cppcoreguidelines-pro-type-member-init]
+    template <expression_typename U>
         requires (widthof(U) < widthof(T))
     expression<T>::expression(expression<U> const& other) :
         expression(&Z3_mk_zero_ext, unsigned{widthof(T) - widthof(U)}, other.base_)
     { }
 
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T>::~expression()
     {
         if (base_ != nullptr)
             Z3_dec_ref(expression_context::instance(), base_);
     }
 
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T>::expression(expression const& other) :
         base_(other.base_)
     {
         Z3_inc_ref(expression_context::instance(), base_);
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T>& expression<T>::operator=(expression const& other)
     {
         if (&other != this)
@@ -111,11 +109,11 @@ namespace vra
         return *this;
     }
 
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T>::expression(expression&& other) noexcept :
         base_(std::exchange(other.base_, nullptr))
     { }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T>& expression<T>::operator=(expression&& other) noexcept
     {
         if (&other != this)
@@ -129,8 +127,8 @@ namespace vra
         return *this;
     }
 
-    template <sti::decayed_integral T>
-    template <sti::decayed_integral U>
+    template <expression_typename T>
+    template <expression_typename U>
         requires (widthof(U) <= widthof(T))
     expression<T> expression<T>::join(std::array<expression<U>, widthof(T) / widthof(U)> const& parts)
     {
@@ -154,20 +152,20 @@ namespace vra
         }
     }
 
-    template <sti::decayed_integral T>
-    template <sti::decayed_integral U, std::size_t POSITION>
+    template <expression_typename T>
+    template <expression_typename U, std::size_t POSITION>
         requires (widthof(T) >= widthof(U) * (POSITION + 1))
     expression<U> expression<T>::extract() const
     {
         return expression<U>(&Z3_mk_extract, unsigned{(widthof(U) * (POSITION + 1)) - 1}, unsigned{widthof(U) * POSITION}, base_);
     }
 
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     bool expression<T>::is_conclusive() const
     {
         return Z3_is_numeral_ast(expression_context::instance(), base_);
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     T expression<T>::evaluate() const
     {
         if (std::uint64_t value { }; Z3_get_numeral_uint64(expression_context::instance(), base_, &value))
@@ -176,18 +174,18 @@ namespace vra
         throw std::logic_error("Inconclusive evaluation");
     }
 
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     bool expression<T>::operator==(expression<T> const& other) const
     {
         return Z3_is_eq_ast(expression_context::instance(), base_, other.base_);
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     bool expression<T>::operator!=(expression<T> const& other) const
     {
         return !operator==(other);
     }
 
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<bool> expression<T>::equal(expression const& other) const
     {
         expression<bool> eq(&Z3_mk_eq, base_, other.base_);
@@ -197,7 +195,7 @@ namespace vra
 
         return expression<bool>(&Z3_mk_ite, eq.base_, one.base_, zero.base_);
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<bool> expression<T>::less_than(expression const& other) const
     {
         _Z3_ast* (* make)(_Z3_context*, _Z3_ast*, _Z3_ast*) { };
@@ -218,18 +216,18 @@ namespace vra
         return expression<bool>(&Z3_mk_ite, lt.base_, one.base_, zero.base_);
     }
 
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T> expression<T>::operator-() const
     {
         return expression(&Z3_mk_bvneg, base_);
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T> expression<T>::operator~() const
     {
         return expression(&Z3_mk_bvnot, base_);
     }
 
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T>& expression<T>::operator++()
     {
         expression<T> one(1);
@@ -238,7 +236,7 @@ namespace vra
 
         return *this;
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T>& expression<T>::operator--()
     {
         expression<T> one(1);
@@ -248,43 +246,43 @@ namespace vra
         return *this;
     }
 
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T>& expression<T>::operator+=(expression const& other)
     {
         apply(&Z3_mk_bvadd, other.base_);
 
         return *this;
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T> operator+(expression<T> a, expression<T> const& b)
     {
         return a += b;
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T>& expression<T>::operator-=(expression const& other)
     {
         apply(&Z3_mk_bvsub, other.base_);
 
         return *this;
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T> operator-(expression<T> a, expression<T> const& b)
     {
         return a -= b;
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T>& expression<T>::operator*=(expression const& other)
     {
         apply(&Z3_mk_bvmul, other.base_);
 
         return *this;
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T> operator*(expression<T> a, expression<T> const& b)
     {
         return a *= b;
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T>& expression<T>::operator/=(expression const& other)
     {
         if constexpr (std::signed_integral<T>)
@@ -298,12 +296,12 @@ namespace vra
 
         return *this;
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T> operator/(expression<T> a, expression<T> const& b)
     {
         return a /= b;
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T>& expression<T>::operator%=(expression const& other)
     {
         if constexpr (std::signed_integral<T>)
@@ -317,75 +315,75 @@ namespace vra
 
         return *this;
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T> operator%(expression<T> a, expression<T> const& b)
     {
         return a %= b;
     }
 
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T>& expression<T>::operator&=(expression const& other)
     {
         apply(&Z3_mk_bvand, other.base_);
 
         return *this;
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T> operator&(expression<T> a, expression<T> const& b)
     {
         return a &= b;
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T>& expression<T>::operator|=(expression const& other)
     {
         apply(&Z3_mk_bvor, other.base_);
 
         return *this;
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T> operator|(expression<T> a, expression<T> const& b)
     {
         return a |= b;
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T>& expression<T>::operator^=(expression const& other)
     {
         apply(&Z3_mk_bvxor, other.base_);
 
         return *this;
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T> operator^(expression<T> a, expression<T> const& b)
     {
         return a ^= b;
     }
 
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T>& expression<T>::operator<<=(expression const& other)
     {
         apply(&Z3_mk_bvshl, other.base_);
 
         return *this;
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T> operator<<(expression<T> a, expression<T> const& b)
     {
         return a <<= b;
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T>& expression<T>::operator>>=(expression const& other)
     {
         apply(&Z3_mk_bvlshr, other.base_);
 
         return *this;
     }
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T> operator>>(expression<T> a, expression<T> const& b)
     {
         return a >>= b;
     }
 
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     std::ostream& operator<<(std::ostream& stream, expression<T> const& expression)
     {
         stream << Z3_ast_to_string(expression_context::instance(), expression.base_);
@@ -396,7 +394,7 @@ namespace vra
 
 namespace std // NOLINT [cert-dcl58-cpp]
 {
-    template <sti::decayed_integral T>
+    template <vra::expression_typename T>
     std::size_t hash<vra::expression<T>>::operator()(vra::expression<T> const& expression) const noexcept
     {
         return Z3_get_ast_hash(vra::expression_context::instance(), expression.base_);

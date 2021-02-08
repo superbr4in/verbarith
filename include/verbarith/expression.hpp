@@ -1,7 +1,10 @@
 #pragma once
 
-#include <stimpak/binary.hpp>
-#include <stimpak/conceptual.hpp>
+#include <climits>
+#include <functional>
+#include <ostream>
+
+#define widthof(T) (std::is_same_v<T, bool> ? 1 : sizeof(T) * CHAR_BIT)
 
 // NOLINTNEXTLINE [cert-dcl51-cpp]
 struct _Z3_ast;
@@ -10,26 +13,36 @@ struct _Z3_context;
 
 namespace vra
 {
-    template <sti::decayed_integral T>
+    template <typename T>
+    concept expression_typename = std::is_integral_v<T> && std::is_same_v<T, std::decay_t<T>>;
+    template <typename F, typename... Ts>
+    concept expression_maker =
+        requires (F&& f, _Z3_context* const context, Ts&&... ts)
+        {
+            { std::invoke(std::forward<F>(f), context, std::forward<Ts>(ts)...) } -> std::same_as<_Z3_ast*>;
+        };
+
+    template <expression_typename T>
     class expression;
 
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     std::ostream& operator<<(std::ostream&, expression<T> const&);
 
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     class expression
     {
-        friend std::hash<expression>;
+        template <expression_typename>
+        friend class expression;
 
-        template <sti::decayed_integral> friend class expression;
+        friend std::hash<expression>;
 
         _Z3_ast* base_;
 
-        template <sti::decayed... Arguments>
-        explicit expression(_Z3_ast* (*)(_Z3_context*, Arguments...), Arguments...);
+        template <typename... Arguments, expression_maker<Arguments...> Maker>
+        explicit expression(Maker&&, Arguments&&...);
 
-        template <sti::decayed... Arguments>
-        void apply(_Z3_ast* (*)(_Z3_context*, _Z3_ast*, Arguments...), Arguments...);
+        template <typename... Arguments, expression_maker<_Z3_ast*, Arguments...> Maker>
+        void apply(Maker&&, Arguments&&...);
         void simplify();
 
     public:
@@ -37,13 +50,13 @@ namespace vra
         explicit expression(T value);
         explicit expression(std::string const& symbol);
 
-        template <sti::decayed_integral U>
+        template <expression_typename U>
             requires (widthof(U) == widthof(T))
         explicit expression(expression<U> const&);
-        template <sti::decayed_integral U>
+        template <expression_typename U>
             requires (widthof(U) > widthof(T))
         explicit expression(expression<U> const&);
-        template <sti::decayed_integral U>
+        template <expression_typename U>
             requires (widthof(U) < widthof(T))
         explicit expression(expression<U> const&);
 
@@ -55,11 +68,11 @@ namespace vra
         expression(expression&&) noexcept;
         expression& operator=(expression&&) noexcept;
 
-        template <sti::decayed_integral U>
+        template <expression_typename U>
             requires (widthof(U) <= widthof(T))
         static expression join(std::array<expression<U>, widthof(T) / widthof(U)> const&);
 
-        template <sti::decayed_integral U, std::size_t POSITION>
+        template <expression_typename U, std::size_t POSITION>
             requires (widthof(T) >= widthof(U) * (POSITION + 1))
         [[nodiscard]] expression<U> extract() const;
 
@@ -94,33 +107,33 @@ namespace vra
         friend std::ostream& operator<< <>(std::ostream&, expression const&);
     };
 
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T> operator+(expression<T>, expression<T> const&);
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T> operator-(expression<T>, expression<T> const&);
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T> operator*(expression<T>, expression<T> const&);
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T> operator/(expression<T>, expression<T> const&);
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T> operator%(expression<T>, expression<T> const&);
 
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T> operator&(expression<T>, expression<T> const&);
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T> operator|(expression<T>, expression<T> const&);
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T> operator^(expression<T>, expression<T> const&);
 
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T> operator<<(expression<T>, expression<T> const&);
-    template <sti::decayed_integral T>
+    template <expression_typename T>
     expression<T> operator>>(expression<T>, expression<T> const&);
 }
 
 namespace std
 {
-    template <sti::decayed_integral T>
+    template <vra::expression_typename T>
     struct hash<vra::expression<T>>
     {
         std::size_t operator()(vra::expression<T> const& expression) const noexcept;

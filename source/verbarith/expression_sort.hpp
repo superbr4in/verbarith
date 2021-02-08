@@ -1,19 +1,19 @@
 #pragma once
 
-#include <z3.h>
+#include <cstddef>
 
-#include <stimpak/conceptual.hpp>
+#include <z3.h>
 
 namespace vra
 {
-    template <sti::decayed_integral T>
+    template <std::size_t WIDTH>
     class expression_sort
     {
         _Z3_sort* base_;
 
-    public:
-
         expression_sort() noexcept;
+
+    public:
 
         ~expression_sort() noexcept;
 
@@ -23,6 +23,6 @@ namespace vra
         expression_sort(expression_sort&&) = delete;
         expression_sort& operator=(expression_sort&&) = delete;
 
-        [[nodiscard]] operator _Z3_sort*() const; // NOLINT [google-explicit-constructor]
+        static _Z3_sort* instance() noexcept;
     };
 }
