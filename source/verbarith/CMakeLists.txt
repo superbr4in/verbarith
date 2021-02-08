@@ -13,7 +13,5 @@ target_include_directories(verbarith
     ${PROJECT_SOURCE_DIR}/source)
 
 target_link_libraries(verbarith
-  PUBLIC
-    stimpak
   PRIVATE
     z3)

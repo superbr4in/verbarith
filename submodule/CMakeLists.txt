@@ -12,7 +12,6 @@ set(Z3_BUILD_PYTHON_BINDINGS OFF)
 set(Z3_ENABLE_EXAMPLE_TARGETS       OFF)
 set(Z3_ENABLE_TRACING_FOR_NON_DEBUG OFF)
 
-add_subdirectory(stimpak)
 add_subdirectory(z3)
 
 add_library(z3
