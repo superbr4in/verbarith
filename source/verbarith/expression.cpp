@@ -1,7 +1,5 @@
 #include <algorithm>
 
-#include <stimpak/fixed_algorithm.hpp>
-
 #include <verbarith/expression.hpp>
 #include <verbarith/expression_sort.ipp>
 
@@ -128,39 +126,6 @@ namespace vra
     }
 
     template <expression_typename T>
-    template <expression_typename U>
-        requires (widthof(U) <= widthof(T))
-    expression<T> expression<T>::join(std::array<expression<U>, widthof(T) / widthof(U)> const& parts)
-    {
-        if constexpr (widthof(T) == widthof(U))
-        {
-            return expression(std::get<0>(parts));
-        }
-        else
-        {
-            expression<T> joined(&Z3_mk_concat, std::get<1>(parts).base_, std::get<0>(parts).base_);
-            sti::array_for_each(parts,
-                [&joined]<std::size_t INDEX>(expression<U> const& part)
-                {
-                    if constexpr (INDEX > 1)
-                    {
-                        joined = expression<T>(&Z3_mk_concat, part.base_, joined.base_);
-                    }
-                });
-
-            return joined;
-        }
-    }
-
-    template <expression_typename T>
-    template <expression_typename U, std::size_t POSITION>
-        requires (widthof(T) >= widthof(U) * (POSITION + 1))
-    expression<U> expression<T>::extract() const
-    {
-        return expression<U>(&Z3_mk_extract, unsigned{(widthof(U) * (POSITION + 1)) - 1}, unsigned{widthof(U) * POSITION}, base_);
-    }
-
-    template <expression_typename T>
     bool expression<T>::is_conclusive() const
     {
         return Z3_is_numeral_ast(expression_context::instance(), base_);
@@ -183,6 +148,14 @@ namespace vra
     bool expression<T>::operator!=(expression<T> const& other) const
     {
         return !operator==(other);
+    }
+
+    template <expression_typename T>
+    template <expression_typename U, std::size_t POSITION>
+        requires (widthof(T) >= widthof(U) * (POSITION + 1))
+    expression<U> expression<T>::extract() const
+    {
+        return expression<U>(&Z3_mk_extract, unsigned{(widthof(U) * (POSITION + 1)) - 1}, unsigned{widthof(U) * POSITION}, base_);
     }
 
     template <expression_typename T>
@@ -389,6 +362,33 @@ namespace vra
         stream << Z3_ast_to_string(expression_context::instance(), expression.base_);
 
         return stream;
+    }
+
+    template <expression_typename T>
+    template <expression_typename U>
+        requires (widthof(U) <= widthof(T))
+    expression<T> expression<T>::join(std::array<expression<U>, widthof(T) / widthof(U)> const& parts)
+    {
+        return join<0>(parts);
+    }
+    template <expression_typename T>
+    template <std::size_t INDEX, expression_typename U>
+        requires (widthof(U) <= widthof(T))
+    expression<T> expression<T>::join(std::array<expression<U>, widthof(T) / widthof(U)> const& parts)
+    {
+        if constexpr (INDEX == widthof(T) / widthof(U) - 1)
+        {
+            auto const identity =
+                [](_Z3_context* const, _Z3_ast* const base) // NOLINT [hicpp-named-parameter]
+                {
+                    return base;
+                };
+            return expression(identity, std::get<INDEX>(parts).base_);
+        }
+        else
+        {
+            return expression(&Z3_mk_concat, join<INDEX + 1>(parts).base_, std::get<INDEX>(parts).base_);
+        }
     }
 }
 

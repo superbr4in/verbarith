@@ -68,19 +68,15 @@ namespace vra
         expression(expression&&) noexcept;
         expression& operator=(expression&&) noexcept;
 
-        template <expression_typename U>
-            requires (widthof(U) <= widthof(T))
-        static expression join(std::array<expression<U>, widthof(T) / widthof(U)> const&);
-
-        template <expression_typename U, std::size_t POSITION>
-            requires (widthof(T) >= widthof(U) * (POSITION + 1))
-        [[nodiscard]] expression<U> extract() const;
-
         [[nodiscard]] bool is_conclusive() const;
         [[nodiscard]] T evaluate() const;
 
         [[nodiscard]] bool operator==(expression const&) const;
         [[nodiscard]] bool operator!=(expression const&) const;
+
+        template <expression_typename U, std::size_t POSITION>
+            requires (widthof(T) >= widthof(U) * (POSITION + 1))
+        [[nodiscard]] expression<U> extract() const;
 
         [[nodiscard]] expression<bool> equal(expression const&) const;
         [[nodiscard]] expression<bool> less_than(expression const&) const;
@@ -105,6 +101,16 @@ namespace vra
         expression& operator>>=(expression const&);
 
         friend std::ostream& operator<< <>(std::ostream&, expression const&);
+
+        template <expression_typename U>
+            requires (widthof(U) <= widthof(T))
+        static expression join(std::array<expression<U>, widthof(T) / widthof(U)> const&);
+
+    private:
+
+        template <std::size_t INDEX, expression_typename U>
+            requires (widthof(U) <= widthof(T))
+        static expression join(std::array<expression<U>, widthof(T) / widthof(U)> const&);
     };
 
     template <expression_typename T>
