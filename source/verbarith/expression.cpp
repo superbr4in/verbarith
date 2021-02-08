@@ -1,7 +1,7 @@
 #include <algorithm>
 
 #include <verbarith/expression.hpp>
-#include <verbarith/expression_sort.ipp>
+#include <verbarith/expression_operation.ipp>
 
 namespace vra
 {
@@ -49,7 +49,7 @@ namespace vra
     }
     template <expression_typename T>
     expression<T>::expression(std::string const& symbol) :
-        base_(Z3_mk_const(expression_context::instance(), Z3_mk_string_symbol(expression_context::instance(), symbol.c_str()), expression_sort<widthof(T)>::instance()))
+        base_(Z3_mk_const(expression_context::instance(), expression_symbol(symbol), expression_sort<widthof(T)>::instance()))
     {
         if (symbol.empty() || std::isdigit(symbol.front()) != 0 || std::ranges::any_of(symbol, [](char const c) { return c == ' ' || std::isprint(c) == 0; }))
             throw std::invalid_argument("Invalid symbol");
@@ -166,6 +166,14 @@ namespace vra
     expression<U> expression<T>::extract() const
     {
         return expression<U>(&Z3_mk_extract, unsigned{(widthof(U) * (POSITION + 1)) - 1}, unsigned{widthof(U) * POSITION}, base_);
+    }
+
+    template <expression_typename T>
+    template <expression_typename U>
+    expression<U> expression<T>::dereference() const
+    {
+        static expression_operation<widthof(U), widthof(T)> const indirection("deref" + std::to_string(widthof(U)));
+        return expression<U>(&Z3_mk_app, indirection, 1, &base_);
     }
 
     template <expression_typename T>
@@ -420,6 +428,15 @@ template                                           vra::expression<bool         
 template                                           vra::expression<bool         >::expression(     expression<std::uint32_t     > const&);
 template vra::expression<bool         >            vra::expression<bool         >::join(std::array<expression<bool         >,  1> const&);
 template vra::expression<bool         >            vra::expression<bool         >::extract                   <bool          ,  0>() const;
+template vra::expression<bool         >            vra::expression<bool         >::dereference() const;
+template vra::expression<std:: int8_t >            vra::expression<bool         >::dereference() const;
+template vra::expression<std::uint8_t >            vra::expression<bool         >::dereference() const;
+template vra::expression<std:: int16_t>            vra::expression<bool         >::dereference() const;
+template vra::expression<std::uint16_t>            vra::expression<bool         >::dereference() const;
+template vra::expression<std:: int32_t>            vra::expression<bool         >::dereference() const;
+template vra::expression<std::uint32_t>            vra::expression<bool         >::dereference() const;
+template vra::expression<std:: int64_t>            vra::expression<bool         >::dereference() const;
+template vra::expression<std::uint64_t>            vra::expression<bool         >::dereference() const;
 template std::ostream&                  vra::operator<<(std::ostream&            ,                 expression<bool              > const&);
 template vra::expression<bool         > vra::operator+ (expression<bool         >,                 expression<bool              > const&);
 template vra::expression<bool         > vra::operator- (expression<bool         >,                 expression<bool              > const&);
@@ -452,6 +469,15 @@ template vra::expression<bool         >            vra::expression<std:: int8_t 
 template vra::expression<bool         >            vra::expression<std:: int8_t >::extract                   <bool          ,  7>() const;
 template vra::expression<std:: int8_t >            vra::expression<std:: int8_t >::extract                   <std:: int8_t  ,  0>() const;
 template vra::expression<std::uint8_t >            vra::expression<std:: int8_t >::extract                   <std::uint8_t  ,  0>() const;
+template vra::expression<bool         >            vra::expression<std:: int8_t >::dereference() const;
+template vra::expression<std:: int8_t >            vra::expression<std:: int8_t >::dereference() const;
+template vra::expression<std::uint8_t >            vra::expression<std:: int8_t >::dereference() const;
+template vra::expression<std:: int16_t>            vra::expression<std:: int8_t >::dereference() const;
+template vra::expression<std::uint16_t>            vra::expression<std:: int8_t >::dereference() const;
+template vra::expression<std:: int32_t>            vra::expression<std:: int8_t >::dereference() const;
+template vra::expression<std::uint32_t>            vra::expression<std:: int8_t >::dereference() const;
+template vra::expression<std:: int64_t>            vra::expression<std:: int8_t >::dereference() const;
+template vra::expression<std::uint64_t>            vra::expression<std:: int8_t >::dereference() const;
 template std::ostream&                  vra::operator<<(std::ostream&            ,                 expression<std:: int8_t      > const&);
 template vra::expression<std:: int8_t > vra::operator+ (expression<std:: int8_t >,                 expression<std:: int8_t      > const&);
 template vra::expression<std:: int8_t > vra::operator- (expression<std:: int8_t >,                 expression<std:: int8_t      > const&);
@@ -484,6 +510,15 @@ template vra::expression<bool         >            vra::expression<std::uint8_t 
 template vra::expression<bool         >            vra::expression<std::uint8_t >::extract                   <bool          ,  7>() const;
 template vra::expression<std:: int8_t >            vra::expression<std::uint8_t >::extract                   <std:: int8_t  ,  0>() const;
 template vra::expression<std::uint8_t >            vra::expression<std::uint8_t >::extract                   <std::uint8_t  ,  0>() const;
+template vra::expression<bool         >            vra::expression<std::uint8_t >::dereference() const;
+template vra::expression<std:: int8_t >            vra::expression<std::uint8_t >::dereference() const;
+template vra::expression<std::uint8_t >            vra::expression<std::uint8_t >::dereference() const;
+template vra::expression<std:: int16_t>            vra::expression<std::uint8_t >::dereference() const;
+template vra::expression<std::uint16_t>            vra::expression<std::uint8_t >::dereference() const;
+template vra::expression<std:: int32_t>            vra::expression<std::uint8_t >::dereference() const;
+template vra::expression<std::uint32_t>            vra::expression<std::uint8_t >::dereference() const;
+template vra::expression<std:: int64_t>            vra::expression<std::uint8_t >::dereference() const;
+template vra::expression<std::uint64_t>            vra::expression<std::uint8_t >::dereference() const;
 template std::ostream&                  vra::operator<<(std::ostream&            ,                 expression<std::uint8_t      > const&);
 template vra::expression<std::uint8_t > vra::operator+ (expression<std::uint8_t >,                 expression<std::uint8_t      > const&);
 template vra::expression<std::uint8_t > vra::operator- (expression<std::uint8_t >,                 expression<std::uint8_t      > const&);
@@ -530,6 +565,15 @@ template vra::expression<std:: int8_t >            vra::expression<std:: int16_t
 template vra::expression<std::uint8_t >            vra::expression<std:: int16_t>::extract                   <std::uint8_t  ,  1>() const;
 template vra::expression<std:: int16_t>            vra::expression<std:: int16_t>::extract                   <std:: int16_t ,  0>() const;
 template vra::expression<std::uint16_t>            vra::expression<std:: int16_t>::extract                   <std::uint16_t ,  0>() const;
+template vra::expression<bool         >            vra::expression<std:: int16_t>::dereference() const;
+template vra::expression<std:: int8_t >            vra::expression<std:: int16_t>::dereference() const;
+template vra::expression<std::uint8_t >            vra::expression<std:: int16_t>::dereference() const;
+template vra::expression<std:: int16_t>            vra::expression<std:: int16_t>::dereference() const;
+template vra::expression<std::uint16_t>            vra::expression<std:: int16_t>::dereference() const;
+template vra::expression<std:: int32_t>            vra::expression<std:: int16_t>::dereference() const;
+template vra::expression<std::uint32_t>            vra::expression<std:: int16_t>::dereference() const;
+template vra::expression<std:: int64_t>            vra::expression<std:: int16_t>::dereference() const;
+template vra::expression<std::uint64_t>            vra::expression<std:: int16_t>::dereference() const;
 template std::ostream&                  vra::operator<<(std::ostream&            ,                 expression<std:: int16_t     > const&);
 template vra::expression<std:: int16_t> vra::operator+ (expression<std:: int16_t>,                 expression<std:: int16_t     > const&);
 template vra::expression<std:: int16_t> vra::operator- (expression<std:: int16_t>,                 expression<std:: int16_t     > const&);
@@ -576,6 +620,15 @@ template vra::expression<std:: int8_t >            vra::expression<std::uint16_t
 template vra::expression<std::uint8_t >            vra::expression<std::uint16_t>::extract                   <std::uint8_t  ,  1>() const;
 template vra::expression<std:: int16_t>            vra::expression<std::uint16_t>::extract                   <std:: int16_t ,  0>() const;
 template vra::expression<std::uint16_t>            vra::expression<std::uint16_t>::extract                   <std::uint16_t ,  0>() const;
+template vra::expression<bool         >            vra::expression<std::uint16_t>::dereference() const;
+template vra::expression<std:: int8_t >            vra::expression<std::uint16_t>::dereference() const;
+template vra::expression<std::uint8_t >            vra::expression<std::uint16_t>::dereference() const;
+template vra::expression<std:: int16_t>            vra::expression<std::uint16_t>::dereference() const;
+template vra::expression<std::uint16_t>            vra::expression<std::uint16_t>::dereference() const;
+template vra::expression<std:: int32_t>            vra::expression<std::uint16_t>::dereference() const;
+template vra::expression<std::uint32_t>            vra::expression<std::uint16_t>::dereference() const;
+template vra::expression<std:: int64_t>            vra::expression<std::uint16_t>::dereference() const;
+template vra::expression<std::uint64_t>            vra::expression<std::uint16_t>::dereference() const;
 template std::ostream&                  vra::operator<<(std::ostream&            ,                 expression<std::uint16_t     > const&);
 template vra::expression<std::uint16_t> vra::operator+ (expression<std::uint16_t>,                 expression<std::uint16_t     > const&);
 template vra::expression<std::uint16_t> vra::operator- (expression<std::uint16_t>,                 expression<std::uint16_t     > const&);
@@ -648,6 +701,15 @@ template vra::expression<std:: int16_t>            vra::expression<std:: int32_t
 template vra::expression<std::uint16_t>            vra::expression<std:: int32_t>::extract                   <std::uint16_t ,  1>() const;
 template vra::expression<std:: int32_t>            vra::expression<std:: int32_t>::extract                   <std:: int32_t ,  0>() const;
 template vra::expression<std::uint32_t>            vra::expression<std:: int32_t>::extract                   <std::uint32_t ,  0>() const;
+template vra::expression<bool         >            vra::expression<std:: int32_t>::dereference() const;
+template vra::expression<std:: int8_t >            vra::expression<std:: int32_t>::dereference() const;
+template vra::expression<std::uint8_t >            vra::expression<std:: int32_t>::dereference() const;
+template vra::expression<std:: int16_t>            vra::expression<std:: int32_t>::dereference() const;
+template vra::expression<std::uint16_t>            vra::expression<std:: int32_t>::dereference() const;
+template vra::expression<std:: int32_t>            vra::expression<std:: int32_t>::dereference() const;
+template vra::expression<std::uint32_t>            vra::expression<std:: int32_t>::dereference() const;
+template vra::expression<std:: int64_t>            vra::expression<std:: int32_t>::dereference() const;
+template vra::expression<std::uint64_t>            vra::expression<std:: int32_t>::dereference() const;
 template std::ostream&                  vra::operator<<(std::ostream&            ,                 expression<std:: int32_t     > const&);
 template vra::expression<std:: int32_t> vra::operator+ (expression<std:: int32_t>,                 expression<std:: int32_t     > const&);
 template vra::expression<std:: int32_t> vra::operator- (expression<std:: int32_t>,                 expression<std:: int32_t     > const&);
@@ -720,6 +782,15 @@ template vra::expression<std:: int16_t>            vra::expression<std::uint32_t
 template vra::expression<std::uint16_t>            vra::expression<std::uint32_t>::extract                   <std::uint16_t ,  1>() const;
 template vra::expression<std:: int32_t>            vra::expression<std::uint32_t>::extract                   <std:: int32_t ,  0>() const;
 template vra::expression<std::uint32_t>            vra::expression<std::uint32_t>::extract                   <std::uint32_t ,  0>() const;
+template vra::expression<bool         >            vra::expression<std::uint32_t>::dereference() const;
+template vra::expression<std:: int8_t >            vra::expression<std::uint32_t>::dereference() const;
+template vra::expression<std::uint8_t >            vra::expression<std::uint32_t>::dereference() const;
+template vra::expression<std:: int16_t>            vra::expression<std::uint32_t>::dereference() const;
+template vra::expression<std::uint16_t>            vra::expression<std::uint32_t>::dereference() const;
+template vra::expression<std:: int32_t>            vra::expression<std::uint32_t>::dereference() const;
+template vra::expression<std::uint32_t>            vra::expression<std::uint32_t>::dereference() const;
+template vra::expression<std:: int64_t>            vra::expression<std::uint32_t>::dereference() const;
+template vra::expression<std::uint64_t>            vra::expression<std::uint32_t>::dereference() const;
 template std::ostream&                  vra::operator<<(std::ostream&            ,                 expression<std::uint32_t     > const&);
 template vra::expression<std::uint32_t> vra::operator+ (expression<std::uint32_t>,                 expression<std::uint32_t     > const&);
 template vra::expression<std::uint32_t> vra::operator- (expression<std::uint32_t>,                 expression<std::uint32_t     > const&);
@@ -844,6 +915,15 @@ template vra::expression<std:: int32_t>            vra::expression<std:: int64_t
 template vra::expression<std::uint32_t>            vra::expression<std:: int64_t>::extract                   <std::uint32_t ,  1>() const;
 template vra::expression<std:: int64_t>            vra::expression<std:: int64_t>::extract                   <std:: int64_t ,  0>() const;
 template vra::expression<std::uint64_t>            vra::expression<std:: int64_t>::extract                   <std::uint64_t ,  0>() const;
+template vra::expression<bool         >            vra::expression<std:: int64_t>::dereference() const;
+template vra::expression<std:: int8_t >            vra::expression<std:: int64_t>::dereference() const;
+template vra::expression<std::uint8_t >            vra::expression<std:: int64_t>::dereference() const;
+template vra::expression<std:: int16_t>            vra::expression<std:: int64_t>::dereference() const;
+template vra::expression<std::uint16_t>            vra::expression<std:: int64_t>::dereference() const;
+template vra::expression<std:: int32_t>            vra::expression<std:: int64_t>::dereference() const;
+template vra::expression<std::uint32_t>            vra::expression<std:: int64_t>::dereference() const;
+template vra::expression<std:: int64_t>            vra::expression<std:: int64_t>::dereference() const;
+template vra::expression<std::uint64_t>            vra::expression<std:: int64_t>::dereference() const;
 template std::ostream&                  vra::operator<<(std::ostream&            ,                 expression<std:: int64_t     > const&);
 template vra::expression<std:: int64_t> vra::operator+ (expression<std:: int64_t>,                 expression<std:: int64_t     > const&);
 template vra::expression<std:: int64_t> vra::operator- (expression<std:: int64_t>,                 expression<std:: int64_t     > const&);
@@ -968,6 +1048,15 @@ template vra::expression<std:: int32_t>            vra::expression<std::uint64_t
 template vra::expression<std::uint32_t>            vra::expression<std::uint64_t>::extract                   <std::uint32_t ,  1>() const;
 template vra::expression<std:: int64_t>            vra::expression<std::uint64_t>::extract                   <std:: int64_t ,  0>() const;
 template vra::expression<std::uint64_t>            vra::expression<std::uint64_t>::extract                   <std::uint64_t ,  0>() const;
+template vra::expression<bool         >            vra::expression<std::uint64_t>::dereference() const;
+template vra::expression<std:: int8_t >            vra::expression<std::uint64_t>::dereference() const;
+template vra::expression<std::uint8_t >            vra::expression<std::uint64_t>::dereference() const;
+template vra::expression<std:: int16_t>            vra::expression<std::uint64_t>::dereference() const;
+template vra::expression<std::uint16_t>            vra::expression<std::uint64_t>::dereference() const;
+template vra::expression<std:: int32_t>            vra::expression<std::uint64_t>::dereference() const;
+template vra::expression<std::uint32_t>            vra::expression<std::uint64_t>::dereference() const;
+template vra::expression<std:: int64_t>            vra::expression<std::uint64_t>::dereference() const;
+template vra::expression<std::uint64_t>            vra::expression<std::uint64_t>::dereference() const;
 template std::ostream&                  vra::operator<<(std::ostream&            ,                 expression<std::uint64_t     > const&);
 template vra::expression<std::uint64_t> vra::operator+ (expression<std::uint64_t>,                 expression<std::uint64_t     > const&);
 template vra::expression<std::uint64_t> vra::operator- (expression<std::uint64_t>,                 expression<std::uint64_t     > const&);

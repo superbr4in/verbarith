@@ -20,9 +20,15 @@ namespace vra
     }
 
     template <std::size_t WIDTH>
-    _Z3_sort* expression_sort<WIDTH>::instance() noexcept
+    expression_sort<WIDTH> const& expression_sort<WIDTH>::instance() noexcept
     {
         static expression_sort const sort;
-        return sort.base_;
+        return sort;
+    }
+
+    template <std::size_t WIDTH>
+    expression_sort<WIDTH>::operator _Z3_sort*() const
+    {
+        return base_;
     }
 }

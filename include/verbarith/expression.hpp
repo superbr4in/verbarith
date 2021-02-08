@@ -80,6 +80,9 @@ namespace vra
             requires (widthof(T) >= widthof(U) * (POSITION + 1))
         [[nodiscard]] expression<U> extract() const;
 
+        template <expression_typename U>
+        [[nodiscard]] expression<U> dereference() const;
+
         [[nodiscard]] expression<bool> equal(expression const&) const;
         [[nodiscard]] expression<bool> less_than(expression const&) const;
 

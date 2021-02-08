@@ -176,6 +176,14 @@ TEST_CASE("Expression: Equality")
     }
 }
 
+TEST_CASE("Expression: Dereference")
+{
+    auto const value = (expression<std::uint32_t>("X") * expression<std::uint32_t>("Y") + expression<std::uint32_t>(4)).dereference<std::uint8_t>();
+
+    CHECK(value.arity() == 1);
+    CHECK_FALSE((value + expression<std::uint8_t>(12)).is_conclusive());
+}
+
 TEST_CASE("Expression: Conclusive EQ")
 {
     auto const a = static_cast<unsigned char>(GENERATE(range(0x00, 0x08), range(0xF8, 0x100)));

@@ -23,6 +23,8 @@ namespace vra
         expression_sort(expression_sort&&) = delete;
         expression_sort& operator=(expression_sort&&) = delete;
 
-        static _Z3_sort* instance() noexcept;
+        static expression_sort const& instance() noexcept;
+
+        operator _Z3_sort*() const; // NOLINT [hicpp-explicit-conversions]
     };
 }
