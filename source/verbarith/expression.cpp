@@ -126,6 +126,16 @@ namespace vra
     }
 
     template <expression_typename T>
+    unsigned expression<T>::arity() const
+    {
+        if (Z3_get_ast_kind(expression_context::instance(), base_) != Z3_APP_AST)
+            throw std::logic_error("No operation");
+
+        // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
+        return Z3_get_arity(expression_context::instance(), Z3_get_app_decl(expression_context::instance(), reinterpret_cast<_Z3_app*>(base_)));
+    }
+
+    template <expression_typename T>
     bool expression<T>::is_conclusive() const
     {
         return Z3_is_numeral_ast(expression_context::instance(), base_);

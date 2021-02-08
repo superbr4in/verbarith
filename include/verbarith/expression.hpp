@@ -68,6 +68,8 @@ namespace vra
         expression(expression&&) noexcept;
         expression& operator=(expression&&) noexcept;
 
+        [[nodiscard]] unsigned arity() const;
+
         [[nodiscard]] bool is_conclusive() const;
         [[nodiscard]] T evaluate() const;
 

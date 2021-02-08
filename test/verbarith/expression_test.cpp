@@ -15,6 +15,7 @@ static_assert(std::is_same_v<decltype(expression(static_cast<  signed int  >(0))
 TEST_CASE("Expression: Symbol requirements")
 {
     std::string const error_message("Invalid symbol");
+
     CHECK_THROWS_WITH(expression<unsigned char>(""),    error_message);
     CHECK_THROWS_WITH(expression<unsigned char>("0"),   error_message);
     CHECK_THROWS_WITH(expression<unsigned char>("0ab"), error_message);
@@ -95,6 +96,20 @@ TEST_CASE("Expression: Extraction")
             CHECK(source.extract<unsigned short, 1>() == expression<unsigned short>(0x1234));
         }
     }
+}
+
+TEST_CASE("Expression: Arity")
+{
+    std::string const error_message("No operation");
+
+    CHECK_THROWS_WITH(expression<unsigned char>(27).arity(),                                   error_message);
+    CHECK_THROWS_WITH((~expression<unsigned char>(26)).arity(),                                error_message);
+    CHECK_THROWS_WITH((expression<unsigned char>(26) + expression<unsigned char>(27)).arity(), error_message);
+
+    CHECK(expression<unsigned char>("X").arity() == 0);
+    CHECK((~expression<unsigned char>("X")).arity() == 1);
+    CHECK((expression<unsigned char>("X") + expression<unsigned char>(27)).arity() == 2);
+    CHECK((~(expression<unsigned char>("X") + expression<unsigned char>(27))).arity() == 1);
 }
 
 TEST_CASE("Expression: Conclusiveness")
