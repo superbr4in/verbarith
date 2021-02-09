@@ -131,8 +131,7 @@ namespace vra
         if (Z3_get_ast_kind(expression_context::instance(), base_) != Z3_APP_AST)
             throw std::logic_error("No operation");
 
-        // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
-        return Z3_get_arity(expression_context::instance(), Z3_get_app_decl(expression_context::instance(), reinterpret_cast<_Z3_app*>(base_)));
+        return Z3_get_arity(expression_context::instance(), expression_operation(base_));
     }
 
     template <expression_typename T>
@@ -172,7 +171,7 @@ namespace vra
     template <expression_typename U>
     expression<U> expression<T>::dereference() const
     {
-        static expression_operation<widthof(U), widthof(T)> const indirection("deref" + std::to_string(widthof(U)));
+        static auto const indirection = expression_operation::create<widthof(U), widthof(T)>("deref" + std::to_string(widthof(U)));
         return expression<U>(&Z3_mk_app, indirection, 1, &base_);
     }
 
