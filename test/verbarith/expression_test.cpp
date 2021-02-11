@@ -26,6 +26,38 @@ TEST_CASE("Expression: Symbol requirements")
     CHECK_THROWS_WITH(expression<unsigned char>("\n"),  error_message);
 }
 
+TEST_CASE("Expression: Signedness")
+{
+    SECTION("Unsigned to signed")
+    {
+        expression<unsigned> value(0x12345678);
+        expression<int> converted(0x12345678);
+
+        SECTION("Copy")
+        {
+            CHECK(expression<int>(value) == converted);
+        }
+        SECTION("Move")
+        {
+            CHECK(expression<int>(std::move(value)) == converted);
+        }
+    }
+    SECTION("Signed to unsigned")
+    {
+        expression<int> value(0x12345678);
+        expression<unsigned> converted(0x12345678);
+
+        SECTION("Copy")
+        {
+            CHECK(expression<unsigned>(value) == converted);
+        }
+        SECTION("Move")
+        {
+            CHECK(expression<unsigned>(std::move(value)) == converted);
+        }
+    }
+}
+
 TEST_CASE("Expression: Shrinkage")
 {
     CHECK(expression<unsigned short>(expression<unsigned>(0x12345678)) == expression<unsigned short>(0x5678));
@@ -140,7 +172,7 @@ TEST_CASE("Expression: Equality")
     }
     SECTION("Copy")
     {
-        expression a_copy(a);
+        expression<unsigned> a_copy(a);
 
         REQUIRE      (a_copy == a);
         REQUIRE_FALSE(a_copy != a);
@@ -198,7 +230,7 @@ TEST_CASE("Expression: Conclusive LT")
     auto const b = static_cast<unsigned char>(GENERATE(range(0x00, 0x08), range(0xF8, 0x100)));
     auto const c = a < b;
 
-    CHECK(expression(a).less_than(expression(b)).evaluate() == c);
+    CHECK(expression(a).less(expression(b)).evaluate() == c);
 }
 
 TEST_CASE("Expression: Conclusive SLT")
@@ -207,7 +239,7 @@ TEST_CASE("Expression: Conclusive SLT")
     auto const b = static_cast<signed char>(GENERATE(range(0x00, 0x08), range(0xF8, 0x100)));
     auto const c = a < b;
 
-    CHECK(expression(a).less_than(expression(b)).evaluate() == c);
+    CHECK(expression(a).less(expression(b)).evaluate() == c);
 }
 
 TEST_CASE("Expression: Conclusive NEG")

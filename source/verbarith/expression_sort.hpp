@@ -1,30 +1,23 @@
 #pragma once
 
-#include <cstddef>
-
 #include <z3.h>
+
+#include <verbarith/expression_base.hpp>
 
 namespace vra
 {
-    template <std::size_t WIDTH>
-    class expression_sort
+    class expression_sort : expression_base<_Z3_sort>
     {
-        _Z3_sort* base_;
-
-        expression_sort() noexcept;
+        using expression_base::expression_base;
 
     public:
 
-        ~expression_sort() noexcept;
+        explicit expression_sort(_Z3_ast* base) noexcept;
 
-        expression_sort(expression_sort const&) = delete;
-        expression_sort& operator=(expression_sort const&) = delete;
+        operator _Z3_sort*() const noexcept; // NOLINT [hicpp-explicit-conversions]
 
-        expression_sort(expression_sort&&) = delete;
-        expression_sort& operator=(expression_sort&&) = delete;
-
+        template <std::size_t WIDTH>
+            requires (WIDTH > 0)
         static expression_sort const& instance() noexcept;
-
-        operator _Z3_sort*() const; // NOLINT [hicpp-explicit-conversions]
     };
 }
