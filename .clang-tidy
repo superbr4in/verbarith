@@ -2,6 +2,7 @@ Checks:
 >
     *,
     -cppcoreguidelines-avoid-magic-numbers,
+    -cppcoreguidelines-macro-usage,
     -cppcoreguidelines-pro-bounds-constant-array-index,
     -fuchsia-default-arguments-calls,
     -fuchsia-default-arguments-declarations,

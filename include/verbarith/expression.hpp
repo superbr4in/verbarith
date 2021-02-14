@@ -1,10 +1,7 @@
 #pragma once
 
-#include <climits>
-
 #include <verbarith/expression_base.hpp>
-
-#define widthof(T) (std::same_as<std::remove_cvref_t<T>, bool> ? 1 : sizeof(T) * CHAR_BIT)
+#include <verbarith/width.hpp>
 
 struct _Z3_ast; // NOLINT [cert-dcl51-cpp]
 
