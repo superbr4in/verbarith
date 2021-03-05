@@ -3,41 +3,27 @@
 #include <verbarith/expression_base.hpp>
 #include <verbarith/width.hpp>
 
-struct _Z3_ast; // NOLINT [cert-dcl51-cpp]
-
 namespace vra
 {
     template <typename T>
-    concept expression_typename = std::same_as<T, void> || (std::integral<T> && std::same_as<T, std::remove_cvref_t<T>>);
+    concept expression_typename =
+            std::same_as<T, std::remove_cvref_t<T>>
+        && (    std::same_as<std::remove_pointer_t<T>, void>
+            || (std::same_as<std::remove_pointer_t<T>, std::remove_cvref_t<std::remove_pointer_t<T>>> && std::integral<std::remove_pointer_t<T>>));
 
     template <expression_typename T = void>
     class expression;
 
-    template <expression_typename T>
-    bool operator==(expression<T> const&, expression<T> const&) noexcept;
-    template <expression_typename T>
-    std::ostream& operator<<(std::ostream&, expression<T> const&) noexcept;
-
     template <>
-    class expression<> : expression_base<_Z3_ast>
+    class expression<> : public expression_base
     {
-        template <expression_typename>
-        friend class expression;
-        friend std::hash<expression>;
-
         using expression_base::expression_base;
-
-    public:
-
-        friend bool operator== <>(expression const&, expression const&) noexcept;
-        friend std::ostream& operator<< <>(std::ostream&, expression const&) noexcept;
     };
     template <expression_typename T>
-    class expression : expression<>
+    class expression : public expression<>
     {
         template <expression_typename>
         friend class expression;
-        friend std::hash<expression>;
 
         using expression<>::expression;
 
@@ -49,12 +35,6 @@ namespace vra
         template <expression_typename U>
             requires (widthof(U) == widthof(T))
         explicit expression(expression<U> const&) noexcept;
-        explicit expression(expression<> const&) noexcept;
-        template <expression_typename U>
-            requires (widthof(U) == widthof(T))
-        explicit expression(expression<U>&&) noexcept;
-        explicit expression(expression<>&&) noexcept;
-
         template <expression_typename U>
             requires (widthof(U) > widthof(T))
         explicit expression(expression<U> const&) noexcept;
@@ -62,77 +42,81 @@ namespace vra
             requires (widthof(U) < widthof(T))
         explicit expression(expression<U> const&) noexcept;
 
-        [[nodiscard]] unsigned arity() const;
-
-        [[nodiscard]] bool is_conclusive() const noexcept;
-        [[nodiscard]] T evaluate() const;
-
+        template <expression_typename U>
+            requires (widthof(U) <= widthof(T))
+        [[nodiscard]] static expression join(std::array<expression<U>, widthof(T) / widthof(U)> const&) noexcept;
         template <expression_typename U, std::size_t POSITION>
             requires (widthof(T) >= widthof(U) * (POSITION + 1))
         [[nodiscard]] expression<U> extract() const noexcept;
 
-        template <expression_typename U>
-            requires (!std::same_as<U, void>)
-        [[nodiscard]] expression<U> dereference() const noexcept;
+        [[nodiscard]] T evaluate() const;
 
         [[nodiscard]] expression<bool> equal(expression const&) const noexcept;
         [[nodiscard]] expression<bool> less(expression const&) const noexcept;
 
-        [[nodiscard]] expression operator-() const noexcept;
-        [[nodiscard]] expression operator~() const noexcept;
-
         expression& operator++() noexcept;
         expression& operator--() noexcept;
 
-        expression& operator+=(expression const&) noexcept;
-        expression& operator-=(expression const&) noexcept;
-        expression& operator*=(expression const&) noexcept;
-        expression& operator/=(expression const&) noexcept;
-        expression& operator%=(expression const&) noexcept;
-
-        expression& operator&=(expression const&) noexcept;
-        expression& operator|=(expression const&) noexcept;
-        expression& operator^=(expression const&) noexcept;
-
+        expression& operator +=(expression const&) noexcept;
+        expression& operator -=(expression const&) noexcept;
+        expression& operator *=(expression const&) noexcept;
+        expression& operator /=(expression const&) noexcept;
+        expression& operator %=(expression const&) noexcept;
+        expression& operator &=(expression const&) noexcept;
+        expression& operator |=(expression const&) noexcept;
+        expression& operator ^=(expression const&) noexcept;
         expression& operator<<=(expression const&) noexcept;
         expression& operator>>=(expression const&) noexcept;
 
-        friend bool operator== <>(expression const&, expression const&) noexcept;
-        friend std::ostream& operator<< <>(std::ostream&, expression const&) noexcept;
+        [[nodiscard]] expression operator-() const noexcept;
+        [[nodiscard]] expression operator~() const noexcept;
 
-        template <expression_typename U>
-            requires (widthof(U) <= widthof(T))
-        [[nodiscard]] static expression join(std::array<expression<U>, widthof(T) / widthof(U)> const&) noexcept;
+        [[nodiscard]] expression operator +(expression const&) noexcept;
+        [[nodiscard]] expression operator -(expression const&) noexcept;
+        [[nodiscard]] expression operator *(expression const&) noexcept;
+        [[nodiscard]] expression operator /(expression const&) noexcept;
+        [[nodiscard]] expression operator %(expression const&) noexcept;
+        [[nodiscard]] expression operator &(expression const&) noexcept;
+        [[nodiscard]] expression operator |(expression const&) noexcept;
+        [[nodiscard]] expression operator ^(expression const&) noexcept;
+        [[nodiscard]] expression operator<<(expression const&) noexcept;
+        [[nodiscard]] expression operator>>(expression const&) noexcept;
 
     private:
+
+        template <expression_typename U = T, typename Applicator>
+        [[nodiscard]] expression<U> derive(Applicator&&) const noexcept;
+        template <expression_typename U = T, typename Applicator>
+        [[nodiscard]] expression<U> derive(Applicator&&, expression const&) const noexcept;
+
+        template <typename Applicator>
+        void update(Applicator&&) noexcept;
+        template <typename Applicator>
+        void update(Applicator&&, expression const&) noexcept;
+        template <typename Applicator>
+        void update(Applicator&&, expression const&, expression const&) noexcept;
 
         template <std::size_t INDEX, expression_typename U>
             requires (widthof(U) <= widthof(T))
         [[nodiscard]] static expression join(std::array<expression<U>, widthof(T) / widthof(U)> const&) noexcept;
     };
 
+    template <>
+    class expression<void*> : public expression_base
+    {
+        using expression_base::expression_base;
+    };
     template <expression_typename T>
-    expression<T> operator+(expression<T>, expression<T> const&) noexcept;
-    template <expression_typename T>
-    expression<T> operator-(expression<T>, expression<T> const&) noexcept;
-    template <expression_typename T>
-    expression<T> operator*(expression<T>, expression<T> const&) noexcept;
-    template <expression_typename T>
-    expression<T> operator/(expression<T>, expression<T> const&) noexcept;
-    template <expression_typename T>
-    expression<T> operator%(expression<T>, expression<T> const&) noexcept;
+    class expression<T*> : public expression<void*>
+    {
+        using expression<void*>::expression;
 
-    template <expression_typename T>
-    expression<T> operator&(expression<T>, expression<T> const&) noexcept;
-    template <expression_typename T>
-    expression<T> operator|(expression<T>, expression<T> const&) noexcept;
-    template <expression_typename T>
-    expression<T> operator^(expression<T>, expression<T> const&) noexcept;
+    public:
 
-    template <expression_typename T>
-    expression<T> operator<<(expression<T>, expression<T> const&) noexcept;
-    template <expression_typename T>
-    expression<T> operator>>(expression<T>, expression<T> const&) noexcept;
+        explicit expression(std::uintptr_t value) noexcept;
+
+        [[nodiscard]] expression<T> dereference() const noexcept;
+    };
 }
 
 namespace std

@@ -2,13 +2,13 @@
 
 #include <z3.h>
 
-#include <verbarith/expression_base.hpp>
+#include <verbarith/resource_handler.hpp>
 
 namespace vra
 {
-    class expression_sort : expression_base<_Z3_sort>
+    class expression_sort : resource_handler<_Z3_sort>
     {
-        using expression_base::expression_base;
+        using resource_handler::resource_handler;
 
     public:
 

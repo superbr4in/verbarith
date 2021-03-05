@@ -11,6 +11,7 @@ Checks:
     -hicpp-braces-around-statements,
     -hicpp-move-const-arg,
     -hicpp-special-member-functions,
+    -hicpp-use-override,
     -google-*,
     -llvm-header-guard,
     -llvm-namespace-comment,
@@ -24,6 +25,9 @@ CheckOptions:
     value:  1
 -
     key:    misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
+    value:  1
+-
+    key:    modernize-use-override.IgnoreDestructors
     value:  1
 -
     key:    modernize-use-transparent-functors.SafeMode

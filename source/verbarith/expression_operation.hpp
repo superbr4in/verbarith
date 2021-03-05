@@ -2,13 +2,13 @@
 
 #include <z3.h>
 
-#include <verbarith/expression_base.hpp>
+#include <verbarith/resource_handler.hpp>
 
 namespace vra
 {
-    class expression_operation : expression_base<_Z3_func_decl>
+    class expression_operation : resource_handler<_Z3_func_decl>
     {
-        using expression_base::expression_base;
+        using resource_handler::resource_handler;
 
     public:
 

@@ -22,7 +22,8 @@ namespace vra
     expression_operation expression_operation::create(std::string const& name) noexcept
     {
         auto const domain_sorts = make_sorts<DOMAIN_WIDTHS...>();
-        return expression_operation(Z3_mk_func_decl,
-            Z3_mk_string_symbol(context(), name.c_str()), domain_sorts.size(), domain_sorts.data(), expression_sort::instance<RANGE_WIDTH>());
+
+        return expression_operation(
+            apply(Z3_mk_func_decl, apply(Z3_mk_string_symbol, name.c_str()), domain_sorts.size(), domain_sorts.data(), expression_sort::instance<RANGE_WIDTH>()));
     }
 }

@@ -130,24 +130,10 @@ TEST_CASE("Expression: Extraction")
     }
 }
 
-TEST_CASE("Expression: Arity")
-{
-    std::string const error_message("No operation");
-
-    CHECK_THROWS_WITH(expression<unsigned char>(27).arity(),                                   error_message);
-    CHECK_THROWS_WITH((~expression<unsigned char>(26)).arity(),                                error_message);
-    CHECK_THROWS_WITH((expression<unsigned char>(26) + expression<unsigned char>(27)).arity(), error_message);
-
-    CHECK(expression<unsigned char>("X").arity() == 0);
-    CHECK((~expression<unsigned char>("X")).arity() == 1);
-    CHECK((expression<unsigned char>("X") + expression<unsigned char>(27)).arity() == 2);
-    CHECK((~(expression<unsigned char>("X") + expression<unsigned char>(27))).arity() == 1);
-}
-
 TEST_CASE("Expression: Conclusiveness")
 {
-    CHECK(expression<unsigned char>(27).is_conclusive());
-    CHECK_FALSE(expression<unsigned char>("X").is_conclusive());
+    CHECK(expression<unsigned char>(27).conclusive());
+    CHECK_FALSE(expression<unsigned char>("X").conclusive());
 }
 TEST_CASE("Expression: Evaluation")
 {
@@ -210,10 +196,8 @@ TEST_CASE("Expression: Equality")
 
 TEST_CASE("Expression: Dereference")
 {
-    auto const value = (expression<std::uint32_t>("X") * expression<std::uint32_t>("Y") + expression<std::uint32_t>(4)).dereference<std::uint8_t>();
-
-    CHECK(value.arity() == 1);
-    CHECK_FALSE((value + expression<std::uint8_t>(12)).is_conclusive());
+    auto const value = expression<std::uint8_t*>(4).dereference();
+    CHECK_FALSE(value.conclusive());
 }
 
 TEST_CASE("Expression: Conclusive EQ")
