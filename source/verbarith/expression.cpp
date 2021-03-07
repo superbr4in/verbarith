@@ -25,13 +25,13 @@ namespace vra
     }
 
     template <expression_typename T>
-    template <expression_typename U>
+    template <integral_expression_typename U>
         requires (widthof(U) == widthof(T))
     expression<T>::expression(expression<U> const& other) noexcept :
         expression(other.base())
     { }
     template <expression_typename T>
-    template <expression_typename U>
+    template <integral_expression_typename U>
         requires (widthof(U) > widthof(T))
     expression<T>::expression(expression<U> const& other) noexcept :
         expression(apply(Z3_mk_extract, unsigned{widthof(T) - 1}, unsigned{0}, other.base()))
@@ -39,7 +39,7 @@ namespace vra
         update(Z3_simplify);
     }
     template <expression_typename T>
-    template <expression_typename U>
+    template <integral_expression_typename U>
         requires (widthof(U) < widthof(T))
     expression<T>::expression(expression<U> const& other) noexcept :
         expression(apply(Z3_mk_zero_ext, unsigned{widthof(T) - widthof(U)}, other.base()))
@@ -48,7 +48,7 @@ namespace vra
     }
 
     template <expression_typename T>
-    template <expression_typename U>
+    template <integral_expression_typename U>
         requires (widthof(U) <= widthof(T))
     expression<T> expression<T>::join(std::array<expression<U>, widthof(T) / widthof(U)> const& parts) noexcept
     {
@@ -65,7 +65,7 @@ namespace vra
         }
     }
     template <expression_typename T>
-    template <expression_typename U, std::size_t POSITION>
+    template <integral_expression_typename U, std::size_t POSITION>
         requires (widthof(T) >= widthof(U) * (POSITION + 1))
     expression<U> expression<T>::extract() const noexcept
     {
@@ -258,7 +258,7 @@ namespace vra
     }
 
     template <expression_typename T>
-    template <expression_typename U, typename Applicator>
+    template <integral_expression_typename U, typename Applicator>
     expression<U> expression<T>::derive(Applicator&& applicator) const noexcept
     {
         expression<U> derived(apply(std::forward<Applicator>(applicator), base()));
@@ -267,7 +267,7 @@ namespace vra
         return derived;
     }
     template <expression_typename T>
-    template <expression_typename U, typename Applicator>
+    template <integral_expression_typename U, typename Applicator>
     expression<U> expression<T>::derive(Applicator&& applicator, expression const& other) const noexcept
     {
         expression<U> derived(apply(std::forward<Applicator>(applicator), base(), other.base()));
@@ -296,7 +296,7 @@ namespace vra
     }
 
     template <expression_typename T>
-    template <std::size_t INDEX, expression_typename U>
+    template <std::size_t INDEX, integral_expression_typename U>
         requires (widthof(U) <= widthof(T))
     expression<T> expression<T>::join(std::array<expression<U>, widthof(T) / widthof(U)> const& parts) noexcept
     {
@@ -310,12 +310,12 @@ namespace vra
         }
     }
 
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T*>::expression(std::uintptr_t value) noexcept :
         expression(apply(Z3_mk_unsigned_int64, static_cast<std::uint64_t>(value), expression_sort::instance<widthof(std::uintptr_t)>()))
     { }
 
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T> expression<T*>::dereference() const noexcept
     {
         static auto const indirection = expression_operation::create<widthof(T), widthof(std::uintptr_t)>("deref" + std::to_string(widthof(T)));

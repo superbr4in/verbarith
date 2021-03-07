@@ -6,46 +6,55 @@
 namespace vra
 {
     template <typename T>
-    concept expression_typename =
+    concept integral_expression_typename =
             std::same_as<T, std::remove_cvref_t<T>>
-        && (    std::same_as<std::remove_pointer_t<T>, void>
-            || (std::same_as<std::remove_pointer_t<T>, std::remove_cvref_t<std::remove_pointer_t<T>>> && std::integral<std::remove_pointer_t<T>>));
+        &&  std::integral<T>;
+    template <typename T>
+    concept integral_pointer_expression_typename =
+            std::same_as<T, std::remove_cvref_t<T>>
+        &&  std::is_pointer_v<T>
+        &&  integral_expression_typename<std::remove_pointer_t<T>>;
 
-    template <expression_typename T = void>
+    template <typename T>
+    concept expression_typename =
+            std::same_as<T, void>
+        ||  std::same_as<T, void*>
+        ||  integral_expression_typename<T>
+        ||  integral_pointer_expression_typename<T>;
+
+    template <expression_typename T>
     class expression;
 
     template <>
-    class expression<> : public expression_base
-    {
-        using expression_base::expression_base;
-    };
+    class expression<void> : public expression_base
+    { };
     template <expression_typename T>
-    class expression : public expression<>
+    class expression : public expression_base
     {
         template <expression_typename>
         friend class expression;
 
-        using expression<>::expression;
+        using expression_base::expression_base;
 
     public:
 
         explicit expression(T value) noexcept;
         explicit expression(std::string const& symbol);
 
-        template <expression_typename U>
+        template <integral_expression_typename U>
             requires (widthof(U) == widthof(T))
         explicit expression(expression<U> const&) noexcept;
-        template <expression_typename U>
+        template <integral_expression_typename U>
             requires (widthof(U) > widthof(T))
         explicit expression(expression<U> const&) noexcept;
-        template <expression_typename U>
+        template <integral_expression_typename U>
             requires (widthof(U) < widthof(T))
         explicit expression(expression<U> const&) noexcept;
 
-        template <expression_typename U>
+        template <integral_expression_typename U>
             requires (widthof(U) <= widthof(T))
         [[nodiscard]] static expression join(std::array<expression<U>, widthof(T) / widthof(U)> const&) noexcept;
-        template <expression_typename U, std::size_t POSITION>
+        template <integral_expression_typename U, std::size_t POSITION>
             requires (widthof(T) >= widthof(U) * (POSITION + 1))
         [[nodiscard]] expression<U> extract() const noexcept;
 
@@ -84,9 +93,9 @@ namespace vra
 
     private:
 
-        template <expression_typename U = T, typename Applicator>
+        template <integral_expression_typename U = T, typename Applicator>
         [[nodiscard]] expression<U> derive(Applicator&&) const noexcept;
-        template <expression_typename U = T, typename Applicator>
+        template <integral_expression_typename U = T, typename Applicator>
         [[nodiscard]] expression<U> derive(Applicator&&, expression const&) const noexcept;
 
         template <typename Applicator>
@@ -96,20 +105,18 @@ namespace vra
         template <typename Applicator>
         void update(Applicator&&, expression const&, expression const&) noexcept;
 
-        template <std::size_t INDEX, expression_typename U>
+        template <std::size_t INDEX, integral_expression_typename U>
             requires (widthof(U) <= widthof(T))
         [[nodiscard]] static expression join(std::array<expression<U>, widthof(T) / widthof(U)> const&) noexcept;
     };
 
     template <>
     class expression<void*> : public expression_base
+    { };
+    template <integral_expression_typename T>
+    class expression<T*> : public expression_base
     {
         using expression_base::expression_base;
-    };
-    template <expression_typename T>
-    class expression<T*> : public expression<void*>
-    {
-        using expression<void*>::expression;
 
     public:
 
