@@ -20,6 +20,9 @@ namespace vra
         return *this;
     }
 
+    expression_base::expression_base(expression_base&&) noexcept = default;
+    expression_base& expression_base::operator=(expression_base&&) noexcept = default;
+
     bool expression_base::conclusive() const noexcept
     {
         return resource_context::apply(Z3_is_numeral_ast, base());

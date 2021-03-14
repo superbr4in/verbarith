@@ -69,16 +69,16 @@ namespace vra
         [[nodiscard]] expression operator-() const noexcept;
         [[nodiscard]] expression operator~() const noexcept;
 
-        [[nodiscard]] expression operator +(expression const&) noexcept;
-        [[nodiscard]] expression operator -(expression const&) noexcept;
-        [[nodiscard]] expression operator *(expression const&) noexcept;
-        [[nodiscard]] expression operator /(expression const&) noexcept;
-        [[nodiscard]] expression operator %(expression const&) noexcept;
-        [[nodiscard]] expression operator &(expression const&) noexcept;
-        [[nodiscard]] expression operator |(expression const&) noexcept;
-        [[nodiscard]] expression operator ^(expression const&) noexcept;
-        [[nodiscard]] expression operator<<(expression const&) noexcept;
-        [[nodiscard]] expression operator>>(expression const&) noexcept;
+        [[nodiscard]] expression operator +(expression const&) const noexcept;
+        [[nodiscard]] expression operator -(expression const&) const noexcept;
+        [[nodiscard]] expression operator *(expression const&) const noexcept;
+        [[nodiscard]] expression operator /(expression const&) const noexcept;
+        [[nodiscard]] expression operator %(expression const&) const noexcept;
+        [[nodiscard]] expression operator &(expression const&) const noexcept;
+        [[nodiscard]] expression operator |(expression const&) const noexcept;
+        [[nodiscard]] expression operator ^(expression const&) const noexcept;
+        [[nodiscard]] expression operator<<(expression const&) const noexcept;
+        [[nodiscard]] expression operator>>(expression const&) const noexcept;
 
     private:
 

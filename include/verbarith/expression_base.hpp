@@ -27,8 +27,8 @@ namespace vra
         expression_base(expression_base const&) noexcept;
         expression_base& operator=(expression_base const&) noexcept;
 
-        expression_base(expression_base&&) noexcept = default;
-        expression_base& operator=(expression_base&&) noexcept = default;
+        expression_base(expression_base&&) noexcept;
+        expression_base& operator=(expression_base&&) noexcept;
 
         [[nodiscard]] bool conclusive() const noexcept;
         [[nodiscard]] bool operator==(expression_base const&) const noexcept;

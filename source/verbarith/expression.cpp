@@ -206,52 +206,52 @@ namespace vra
     }
 
     template <expression_typename T>
-    expression<T> expression<T>::operator +(expression const& other) noexcept
+    expression<T> expression<T>::operator +(expression const& other) const noexcept
     {
         return derive(Z3_mk_bvadd, other);
     }
     template <expression_typename T>
-    expression<T> expression<T>::operator -(expression const& other) noexcept
+    expression<T> expression<T>::operator -(expression const& other) const noexcept
     {
         return derive(Z3_mk_bvsub, other);
     }
     template <expression_typename T>
-    expression<T> expression<T>::operator *(expression const& other) noexcept
+    expression<T> expression<T>::operator *(expression const& other) const noexcept
     {
         return derive(Z3_mk_bvmul, other);
     }
     template <expression_typename T>
-    expression<T> expression<T>::operator /(expression const& other) noexcept
+    expression<T> expression<T>::operator /(expression const& other) const noexcept
     {
         return derive(std::signed_integral<T> ? Z3_mk_bvsdiv : Z3_mk_bvudiv, other);
     }
     template <expression_typename T>
-    expression<T> expression<T>::operator %(expression const& other) noexcept
+    expression<T> expression<T>::operator %(expression const& other) const noexcept
     {
         return derive(std::signed_integral<T> ? Z3_mk_bvsrem : Z3_mk_bvurem, other);
     }
     template <expression_typename T>
-    expression<T> expression<T>::operator &(expression const& other) noexcept
+    expression<T> expression<T>::operator &(expression const& other) const noexcept
     {
         return derive(Z3_mk_bvand, other);
     }
     template <expression_typename T>
-    expression<T> expression<T>::operator |(expression const& other) noexcept
+    expression<T> expression<T>::operator |(expression const& other) const noexcept
     {
         return derive(Z3_mk_bvor, other);
     }
     template <expression_typename T>
-    expression<T> expression<T>::operator ^(expression const& other) noexcept
+    expression<T> expression<T>::operator ^(expression const& other) const noexcept
     {
         return derive(Z3_mk_bvxor, other);
     }
     template <expression_typename T>
-    expression<T> expression<T>::operator<<(expression const& other) noexcept
+    expression<T> expression<T>::operator<<(expression const& other) const noexcept
     {
         return derive(Z3_mk_bvshl, other);
     }
     template <expression_typename T>
-    expression<T> expression<T>::operator>>(expression const& other) noexcept
+    expression<T> expression<T>::operator>>(expression const& other) const noexcept
     {
         return derive(Z3_mk_bvlshr, other);
     }
