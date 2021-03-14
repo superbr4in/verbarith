@@ -3,8 +3,7 @@
 #include <verbarith/preprocessor.hpp>
 #include <verbarith/width.hpp>
 
-#define         TYPE(T)         TYPE_##T
-#define POINTER_TYPE(T) POINTER_TYPE_##T
+#define TYPE(T) TYPE_##T
 
 #define LOOP_TYPES_0(action, ...) LOOP_12_0(action, __VA_ARGS__)
 #define LOOP_TYPES_1(action, ...) LOOP_12_1(action, __VA_ARGS__)
@@ -29,19 +28,6 @@
 #define TYPE_9  unsigned long      int
 #define TYPE_10   signed long long int
 #define TYPE_11 unsigned long long int
-
-#define POINTER_TYPE_0  TYPE_0 *
-#define POINTER_TYPE_1  TYPE_1 *
-#define POINTER_TYPE_2  TYPE_2 *
-#define POINTER_TYPE_3  TYPE_3 *
-#define POINTER_TYPE_4  TYPE_4 *
-#define POINTER_TYPE_5  TYPE_5 *
-#define POINTER_TYPE_6  TYPE_6 *
-#define POINTER_TYPE_7  TYPE_7 *
-#define POINTER_TYPE_8  TYPE_8 *
-#define POINTER_TYPE_9  TYPE_9 *
-#define POINTER_TYPE_10 TYPE_10*
-#define POINTER_TYPE_11 TYPE_11*
 
 #define TYPE_WIDTH_DIVIDE_0_0    1
 #define TYPE_WIDTH_DIVIDE_0_1    0
@@ -627,9 +613,6 @@
     static_assert(T == U ? true : !std::is_same_v<TYPE(T), TYPE(U)>)
 #define ASSERT_TYPE(T) LOOP_TYPES_1(SINGLE_ASSERT_TYPE, T)
 LOOP_TYPES_0(ASSERT_TYPE);
-#define ASSERT_POINTER_TYPE(T)\
-    static_assert(std::is_same_v<POINTER_TYPE(T), TYPE(T)*>)
-LOOP_TYPES_0(ASSERT_POINTER_TYPE);
 
 #define SINGLE_ASSERT_TYPE_WIDTH_DIVIDE(T, U)\
     static_assert(TYPE_WIDTH_DIVIDE(T, U) == widthof(TYPE(T)) / widthof(TYPE(U)))

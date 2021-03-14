@@ -194,12 +194,6 @@ TEST_CASE("Expression: Equality")
     }
 }
 
-TEST_CASE("Expression: Dereference")
-{
-    auto const value = expression<std::uint8_t*>(4).dereference();
-    CHECK_FALSE(value.conclusive());
-}
-
 TEST_CASE("Expression: Conclusive EQ")
 {
     auto const a = static_cast<unsigned char>(GENERATE(range(0x00, 0x08), range(0xF8, 0x100)));

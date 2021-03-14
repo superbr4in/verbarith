@@ -2,6 +2,7 @@
 
 #include <verbarith/expression_operation.hpp>
 #include <verbarith/expression_sort.ipp>
+#include <verbarith/resource_handler.ipp>
 
 namespace vra
 {
@@ -24,6 +25,13 @@ namespace vra
         auto const domain_sorts = make_sorts<DOMAIN_WIDTHS...>();
 
         return expression_operation(
-            apply(Z3_mk_func_decl, apply(Z3_mk_string_symbol, name.c_str()), domain_sorts.size(), domain_sorts.data(), expression_sort::instance<RANGE_WIDTH>()));
+            resource_context::apply(
+                Z3_mk_func_decl,
+                resource_context::apply(
+                    Z3_mk_string_symbol,
+                    name.c_str()),
+                domain_sorts.size(),
+                domain_sorts.data(),
+                expression_sort::instance<RANGE_WIDTH>()));
     }
 }

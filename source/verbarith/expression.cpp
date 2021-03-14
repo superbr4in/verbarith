@@ -1,9 +1,8 @@
 #include <algorithm>
 
 #include <verbarith/expression.hpp>
-#include <verbarith/expression_operation.ipp>
+#include <verbarith/expression_sort.ipp>
 #include <verbarith/preprocessor_types.hpp>
-#include <verbarith/resource_handler.ipp>
 
 namespace vra
 {
@@ -14,11 +13,11 @@ namespace vra
 
     template <expression_typename T>
     expression<T>::expression(T const value) noexcept :
-        expression(apply(Z3_mk_unsigned_int64, static_cast<std::uint64_t>(value), expression_sort::instance<widthof(T)>()))
+        expression(resource_context::apply(Z3_mk_unsigned_int64, static_cast<std::uint64_t>(value), expression_sort::instance<widthof(T)>()))
     { }
     template <expression_typename T>
     expression<T>::expression(std::string const& symbol) :
-        expression(apply(Z3_mk_const, apply(Z3_mk_string_symbol, symbol.c_str()), expression_sort::instance<widthof(T)>()))
+        expression(resource_context::apply(Z3_mk_const, resource_context::apply(Z3_mk_string_symbol, symbol.c_str()), expression_sort::instance<widthof(T)>()))
     {
         if (symbol.empty() || std::isdigit(symbol.front()) != 0 || std::ranges::any_of(symbol, [](char const c) { return c == ' ' || std::isprint(c) == 0; }))
             throw std::invalid_argument("Invalid symbol");
@@ -34,7 +33,7 @@ namespace vra
     template <integral_expression_typename U>
         requires (widthof(U) > widthof(T))
     expression<T>::expression(expression<U> const& other) noexcept :
-        expression(apply(Z3_mk_extract, unsigned{widthof(T) - 1}, unsigned{0}, other.base()))
+        expression(resource_context::apply(Z3_mk_extract, unsigned{widthof(T) - 1}, unsigned{0}, other.base()))
     {
         update(Z3_simplify);
     }
@@ -42,7 +41,7 @@ namespace vra
     template <integral_expression_typename U>
         requires (widthof(U) < widthof(T))
     expression<T>::expression(expression<U> const& other) noexcept :
-        expression(apply(Z3_mk_zero_ext, unsigned{widthof(T) - widthof(U)}, other.base()))
+        expression(resource_context::apply(Z3_mk_zero_ext, unsigned{widthof(T) - widthof(U)}, other.base()))
     {
         update(Z3_simplify);
     }
@@ -69,7 +68,7 @@ namespace vra
         requires (widthof(T) >= widthof(U) * (POSITION + 1))
     expression<U> expression<T>::extract() const noexcept
     {
-        expression<U> result(apply(Z3_mk_extract, unsigned{(widthof(U) * (POSITION + 1)) - 1}, unsigned{widthof(U) * POSITION}, base()));
+        expression<U> result(resource_context::apply(Z3_mk_extract, unsigned{(widthof(U) * (POSITION + 1)) - 1}, unsigned{widthof(U) * POSITION}, base()));
         result.update(Z3_simplify);
 
         return result;
@@ -78,7 +77,7 @@ namespace vra
     template <expression_typename T>
     T expression<T>::evaluate() const
     {
-        if (std::uint64_t value { }; apply(Z3_get_numeral_uint64, base(), &value))
+        if (std::uint64_t value { }; resource_context::apply(Z3_get_numeral_uint64, base(), &value))
             return static_cast<T>(value);
 
         throw std::logic_error("Inconclusive evaluation");
@@ -261,7 +260,7 @@ namespace vra
     template <integral_expression_typename U, typename Applicator>
     expression<U> expression<T>::derive(Applicator&& applicator) const noexcept
     {
-        expression<U> derived(apply(std::forward<Applicator>(applicator), base()));
+        expression<U> derived(resource_context::apply(std::forward<Applicator>(applicator), base()));
         derived.update(Z3_simplify);
 
         return derived;
@@ -270,7 +269,7 @@ namespace vra
     template <integral_expression_typename U, typename Applicator>
     expression<U> expression<T>::derive(Applicator&& applicator, expression const& other) const noexcept
     {
-        expression<U> derived(apply(std::forward<Applicator>(applicator), base(), other.base()));
+        expression<U> derived(resource_context::apply(std::forward<Applicator>(applicator), base(), other.base()));
         derived.update(Z3_simplify);
 
         return derived;
@@ -280,19 +279,19 @@ namespace vra
     template <typename Applicator>
     void expression<T>::update(Applicator&& applicator) noexcept
     {
-        base(apply(std::forward<Applicator>(applicator), base()));
+        base(resource_context::apply(std::forward<Applicator>(applicator), base()));
     }
     template <expression_typename T>
     template <typename Applicator>
     void expression<T>::update(Applicator&& applicator, expression const& other) noexcept
     {
-        base(apply(std::forward<Applicator>(applicator), base(), other.base()));
+        base(resource_context::apply(std::forward<Applicator>(applicator), base(), other.base()));
     }
     template <expression_typename T>
     template <typename Applicator>
     void expression<T>::update(Applicator&& applicator, expression const& other_1, expression const& other_2) noexcept
     {
-        base(apply(std::forward<Applicator>(applicator), base(), other_1.base(), other_2.base()));
+        base(resource_context::apply(std::forward<Applicator>(applicator), base(), other_1.base(), other_2.base()));
     }
 
     template <expression_typename T>
@@ -302,26 +301,12 @@ namespace vra
     {
         if constexpr (INDEX == widthof(T) / widthof(U) - 2)
         {
-            return expression(apply(Z3_mk_concat, std::get<INDEX + 1>(parts).base(), std::get<INDEX>(parts).base()));
+            return expression(resource_context::apply(Z3_mk_concat, std::get<INDEX + 1>(parts).base(), std::get<INDEX>(parts).base()));
         }
         else
         {
-            return expression(apply(Z3_mk_concat, join<INDEX + 1>(parts).base(), std::get<INDEX>(parts).base()));
+            return expression(resource_context::apply(Z3_mk_concat, join<INDEX + 1>(parts).base(), std::get<INDEX>(parts).base()));
         }
-    }
-
-    template <integral_expression_typename T>
-    expression<T*>::expression(std::uintptr_t value) noexcept :
-        expression(apply(Z3_mk_unsigned_int64, static_cast<std::uint64_t>(value), expression_sort::instance<widthof(std::uintptr_t)>()))
-    { }
-
-    template <integral_expression_typename T>
-    expression<T> expression<T*>::dereference() const noexcept
-    {
-        static auto const indirection = expression_operation::create<widthof(T), widthof(std::uintptr_t)>("deref" + std::to_string(widthof(T)));
-
-        auto* const b = base();
-        return expression<T>(apply(Z3_mk_app, indirection, 1, &b));
     }
 }
 
@@ -335,8 +320,7 @@ namespace std // NOLINT [cert-dcl58-cpp]
     }
 }
 
-#define         EXPRESSION(T) expression<        TYPE(T)>
-#define POINTER_EXPRESSION(T) expression<POINTER_TYPE(T)>
+#define EXPRESSION(T) expression<TYPE(T)>
 
 #define INSTANTIATE_EXPRESSION_SQUARE_INDEXED(T, U, index)\
     template vra::EXPRESSION(U) vra::EXPRESSION(T)::extract<TYPE(U), index>() const
@@ -345,9 +329,7 @@ namespace std // NOLINT [cert-dcl58-cpp]
     IF_TYPE_WIDTH_DIVIDABLE( T, U, template vra::EXPRESSION(T) vra::EXPRESSION(T)::join(std::array<EXPRESSION(U), TYPE_WIDTH_DIVIDE(T, U)> const&));\
     LOOP_TYPE_WIDTH_DIVIDE_2(T, U, INSTANTIATE_EXPRESSION_SQUARE_INDEXED, T, U)
 #define INSTANTIATE_EXPRESSION(T)\
-    template class           vra::        EXPRESSION(T) ;\
-    template class           vra::POINTER_EXPRESSION(T) ;\
-    template class std::hash<vra::        EXPRESSION(T)>;\
-    template class std::hash<vra::POINTER_EXPRESSION(T)>;\
+    template class           vra::EXPRESSION(T) ;\
+    template class std::hash<vra::EXPRESSION(T)>;\
     LOOP_TYPES_1(INSTANTIATE_EXPRESSION_SQUARE, T)
 LOOP_TYPES_0(INSTANTIATE_EXPRESSION);

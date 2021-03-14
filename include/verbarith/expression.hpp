@@ -9,30 +9,19 @@ namespace vra
     concept integral_expression_typename =
             std::same_as<T, std::remove_cvref_t<T>>
         &&  std::integral<T>;
-    template <typename T>
-    concept integral_pointer_expression_typename =
-            std::same_as<T, std::remove_cvref_t<T>>
-        &&  std::is_pointer_v<T>
-        &&  integral_expression_typename<std::remove_pointer_t<T>>;
 
     template <typename T>
     concept expression_typename =
             std::same_as<T, void>
-        ||  std::same_as<T, void*>
-        ||  integral_expression_typename<T>
-        ||  integral_pointer_expression_typename<T>;
+        ||  integral_expression_typename<T>;
 
-    template <expression_typename T>
-    class expression;
-
-    template <>
-    class expression<void> : public expression_base
-    { };
     template <expression_typename T>
     class expression : public expression_base
     {
         template <expression_typename>
         friend class expression;
+        template <expression_typename>
+        friend class pointer_expression;
 
         using expression_base::expression_base;
 
@@ -109,21 +98,9 @@ namespace vra
             requires (widthof(U) <= widthof(T))
         [[nodiscard]] static expression join(std::array<expression<U>, widthof(T) / widthof(U)> const&) noexcept;
     };
-
     template <>
-    class expression<void*> : public expression_base
+    class expression<void> : public expression_base
     { };
-    template <integral_expression_typename T>
-    class expression<T*> : public expression_base
-    {
-        using expression_base::expression_base;
-
-    public:
-
-        explicit expression(std::uintptr_t value) noexcept;
-
-        [[nodiscard]] expression<T> dereference() const noexcept;
-    };
 }
 
 namespace std
