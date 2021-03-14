@@ -9,7 +9,7 @@ namespace vra
     template <expression_typename T>
     static expression<T> const zero(0);
     template <expression_typename T>
-    static expression<T> const one(1);
+    static expression<T> const one(static_cast<T>(1));
 
     template <expression_typename T>
     expression<T>::expression(T const value) noexcept :
@@ -323,13 +323,13 @@ namespace std // NOLINT [cert-dcl58-cpp]
 #define EXPRESSION(T) expression<TYPE(T)>
 
 #define INSTANTIATE_EXPRESSION_SQUARE_INDEXED(T, U, index)\
-    template vra::EXPRESSION(U) vra::EXPRESSION(T)::extract<TYPE(U), index>() const
+    template vra::EXPRESSION(U) vra::EXPRESSION(T)::extract<TYPE(U), index>() const;
 #define INSTANTIATE_EXPRESSION_SQUARE(T, U)\
     IF_NOT_EQUAL(            T, U, template                    vra::EXPRESSION(T)::expression(     EXPRESSION(U) const&))                          ;\
     IF_TYPE_WIDTH_DIVIDABLE( T, U, template vra::EXPRESSION(T) vra::EXPRESSION(T)::join(std::array<EXPRESSION(U), TYPE_WIDTH_DIVIDE(T, U)> const&));\
-    LOOP_TYPE_WIDTH_DIVIDE_2(T, U, INSTANTIATE_EXPRESSION_SQUARE_INDEXED, T, U)
+    LOOP_TYPE_WIDTH_DIVIDE_2(T, U, INSTANTIATE_EXPRESSION_SQUARE_INDEXED, T, U);
 #define INSTANTIATE_EXPRESSION(T)\
     template class           vra::EXPRESSION(T) ;\
     template class std::hash<vra::EXPRESSION(T)>;\
-    LOOP_TYPES_1(INSTANTIATE_EXPRESSION_SQUARE, T)
-LOOP_TYPES_0(INSTANTIATE_EXPRESSION);
+    LOOP_TYPES_1(INSTANTIATE_EXPRESSION_SQUARE, T);
+LOOP_TYPES_0(INSTANTIATE_EXPRESSION)

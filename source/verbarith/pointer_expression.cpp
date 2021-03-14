@@ -4,7 +4,7 @@
 
 namespace vra
 {
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T> pointer_expression<T>::dereference() const noexcept
     {
         static auto const indirection = expression_operation::create<widthof(T), widthof(std::uintptr_t)>("deref" + std::to_string(widthof(T)));
@@ -29,5 +29,5 @@ namespace std // NOLINT [cert-dcl58-cpp]
 
 #define INSTANTIATE_POINTER_EXPRESSION(T)\
     template class           vra::POINTER_EXPRESSION(T) ;\
-    template class std::hash<vra::POINTER_EXPRESSION(T)>
-LOOP_TYPES_0(INSTANTIATE_POINTER_EXPRESSION);
+    template class std::hash<vra::POINTER_EXPRESSION(T)>;
+LOOP_TYPES_0(INSTANTIATE_POINTER_EXPRESSION)

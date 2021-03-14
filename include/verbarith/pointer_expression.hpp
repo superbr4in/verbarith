@@ -4,12 +4,12 @@
 
 namespace vra
 {
-    template <expression_typename T>
+    template <integral_expression_typename T>
     class pointer_expression : public expression<std::uintptr_t>
     {
-        using expression::expression;
-
     public:
+
+        using expression::expression;
 
         [[nodiscard]] expression<T> dereference() const noexcept;
     };

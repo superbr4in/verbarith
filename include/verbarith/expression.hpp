@@ -7,20 +7,20 @@ namespace vra
 {
     template <typename T>
     concept integral_expression_typename =
-            std::same_as<T, std::remove_cvref_t<T>>
-        &&  std::integral<T>;
+            std::same_as<T, std::byte>
+        || (std::same_as<T, std::remove_cvref_t<T>> && std::integral<T>);
 
     template <typename T>
     concept expression_typename =
             std::same_as<T, void>
         ||  integral_expression_typename<T>;
 
-    template <expression_typename T>
+    template <expression_typename T = void>
     class expression : public expression_base
     {
         template <expression_typename>
         friend class expression;
-        template <expression_typename>
+        template <integral_expression_typename>
         friend class pointer_expression;
 
         using expression_base::expression_base;

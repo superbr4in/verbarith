@@ -1,19 +1,23 @@
 #pragma once
 
+#include <cstddef>
+
 #include <verbarith/preprocessor.hpp>
 #include <verbarith/width.hpp>
 
 #define TYPE(T) TYPE_##T
 
-#define LOOP_TYPES_0(action, ...) LOOP_12_0(action, __VA_ARGS__)
-#define LOOP_TYPES_1(action, ...) LOOP_12_1(action, __VA_ARGS__)
+#define LOOP_TYPES_0(action, ...) LOOP_13_0(action, __VA_ARGS__)
+#define LOOP_TYPES_1(action, ...) LOOP_13_1(action, __VA_ARGS__)
 
-#define      TYPE_WIDTH_DIVIDE(  T, U)                   TYPE_WIDTH_DIVIDE_##T##_##U
+#define TYPE_WIDTH_DIVIDE(T, U) TYPE_WIDTH_DIVIDE_##T##_##U
+
 #define LOOP_TYPE_WIDTH_DIVIDE_0(T, U, action, ...) LOOP_TYPE_WIDTH_DIVIDE_##T##_##U(0, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_1(T, U, action, ...) LOOP_TYPE_WIDTH_DIVIDE_##T##_##U(1, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_2(T, U, action, ...) LOOP_TYPE_WIDTH_DIVIDE_##T##_##U(2, action, __VA_ARGS__)
 
-#define IF_TYPE_WIDTH_EQUAL(    T, U, action) IF_TYPE_WIDTH_EQUAL_##T##_##U(    action)
+#define IF_TYPE_WIDTH_EQUAL(T, U, action) IF_TYPE_WIDTH_EQUAL_##T##_##U(action)
+
 #define IF_TYPE_WIDTH_DIVIDABLE(T, U, action) IF_TYPE_WIDTH_DIVIDABLE_##T##_##U(action)
 
 #define TYPE_0                     bool
@@ -28,6 +32,7 @@
 #define TYPE_9  unsigned long      int
 #define TYPE_10   signed long long int
 #define TYPE_11 unsigned long long int
+#define TYPE_12 std::byte
 
 #define TYPE_WIDTH_DIVIDE_0_0    1
 #define TYPE_WIDTH_DIVIDE_0_1    0
@@ -41,6 +46,7 @@
 #define TYPE_WIDTH_DIVIDE_0_9    0
 #define TYPE_WIDTH_DIVIDE_0_10   0
 #define TYPE_WIDTH_DIVIDE_0_11   0
+#define TYPE_WIDTH_DIVIDE_0_12   0
 #define TYPE_WIDTH_DIVIDE_1_0    8
 #define TYPE_WIDTH_DIVIDE_1_1    1
 #define TYPE_WIDTH_DIVIDE_1_2    1
@@ -53,6 +59,7 @@
 #define TYPE_WIDTH_DIVIDE_1_9    0
 #define TYPE_WIDTH_DIVIDE_1_10   0
 #define TYPE_WIDTH_DIVIDE_1_11   0
+#define TYPE_WIDTH_DIVIDE_1_12   1
 #define TYPE_WIDTH_DIVIDE_2_0    8
 #define TYPE_WIDTH_DIVIDE_2_1    1
 #define TYPE_WIDTH_DIVIDE_2_2    1
@@ -65,6 +72,7 @@
 #define TYPE_WIDTH_DIVIDE_2_9    0
 #define TYPE_WIDTH_DIVIDE_2_10   0
 #define TYPE_WIDTH_DIVIDE_2_11   0
+#define TYPE_WIDTH_DIVIDE_2_12   1
 #define TYPE_WIDTH_DIVIDE_3_0    8
 #define TYPE_WIDTH_DIVIDE_3_1    1
 #define TYPE_WIDTH_DIVIDE_3_2    1
@@ -77,6 +85,7 @@
 #define TYPE_WIDTH_DIVIDE_3_9    0
 #define TYPE_WIDTH_DIVIDE_3_10   0
 #define TYPE_WIDTH_DIVIDE_3_11   0
+#define TYPE_WIDTH_DIVIDE_3_12   1
 #define TYPE_WIDTH_DIVIDE_4_0   16
 #define TYPE_WIDTH_DIVIDE_4_1    2
 #define TYPE_WIDTH_DIVIDE_4_2    2
@@ -89,6 +98,7 @@
 #define TYPE_WIDTH_DIVIDE_4_9    0
 #define TYPE_WIDTH_DIVIDE_4_10   0
 #define TYPE_WIDTH_DIVIDE_4_11   0
+#define TYPE_WIDTH_DIVIDE_4_12   2
 #define TYPE_WIDTH_DIVIDE_5_0   16
 #define TYPE_WIDTH_DIVIDE_5_1    2
 #define TYPE_WIDTH_DIVIDE_5_2    2
@@ -101,6 +111,7 @@
 #define TYPE_WIDTH_DIVIDE_5_9    0
 #define TYPE_WIDTH_DIVIDE_5_10   0
 #define TYPE_WIDTH_DIVIDE_5_11   0
+#define TYPE_WIDTH_DIVIDE_5_12   2
 #define TYPE_WIDTH_DIVIDE_6_0   32
 #define TYPE_WIDTH_DIVIDE_6_1    4
 #define TYPE_WIDTH_DIVIDE_6_2    4
@@ -113,6 +124,7 @@
 #define TYPE_WIDTH_DIVIDE_6_9    0
 #define TYPE_WIDTH_DIVIDE_6_10   0
 #define TYPE_WIDTH_DIVIDE_6_11   0
+#define TYPE_WIDTH_DIVIDE_6_12   4
 #define TYPE_WIDTH_DIVIDE_7_0   32
 #define TYPE_WIDTH_DIVIDE_7_1    4
 #define TYPE_WIDTH_DIVIDE_7_2    4
@@ -125,6 +137,7 @@
 #define TYPE_WIDTH_DIVIDE_7_9    0
 #define TYPE_WIDTH_DIVIDE_7_10   0
 #define TYPE_WIDTH_DIVIDE_7_11   0
+#define TYPE_WIDTH_DIVIDE_7_12   4
 #define TYPE_WIDTH_DIVIDE_8_0   64
 #define TYPE_WIDTH_DIVIDE_8_1    8
 #define TYPE_WIDTH_DIVIDE_8_2    8
@@ -137,6 +150,7 @@
 #define TYPE_WIDTH_DIVIDE_8_9    1
 #define TYPE_WIDTH_DIVIDE_8_10   1
 #define TYPE_WIDTH_DIVIDE_8_11   1
+#define TYPE_WIDTH_DIVIDE_8_12   8
 #define TYPE_WIDTH_DIVIDE_9_0   64
 #define TYPE_WIDTH_DIVIDE_9_1    8
 #define TYPE_WIDTH_DIVIDE_9_2    8
@@ -149,6 +163,7 @@
 #define TYPE_WIDTH_DIVIDE_9_9    1
 #define TYPE_WIDTH_DIVIDE_9_10   1
 #define TYPE_WIDTH_DIVIDE_9_11   1
+#define TYPE_WIDTH_DIVIDE_9_12   8
 #define TYPE_WIDTH_DIVIDE_10_0  64
 #define TYPE_WIDTH_DIVIDE_10_1   8
 #define TYPE_WIDTH_DIVIDE_10_2   8
@@ -161,6 +176,7 @@
 #define TYPE_WIDTH_DIVIDE_10_9   1
 #define TYPE_WIDTH_DIVIDE_10_10  1
 #define TYPE_WIDTH_DIVIDE_10_11  1
+#define TYPE_WIDTH_DIVIDE_10_12  8
 #define TYPE_WIDTH_DIVIDE_11_0  64
 #define TYPE_WIDTH_DIVIDE_11_1   8
 #define TYPE_WIDTH_DIVIDE_11_2   8
@@ -173,6 +189,20 @@
 #define TYPE_WIDTH_DIVIDE_11_9   1
 #define TYPE_WIDTH_DIVIDE_11_10  1
 #define TYPE_WIDTH_DIVIDE_11_11  1
+#define TYPE_WIDTH_DIVIDE_11_12  8
+#define TYPE_WIDTH_DIVIDE_12_0   8
+#define TYPE_WIDTH_DIVIDE_12_1   1
+#define TYPE_WIDTH_DIVIDE_12_2   1
+#define TYPE_WIDTH_DIVIDE_12_3   1
+#define TYPE_WIDTH_DIVIDE_12_4   0
+#define TYPE_WIDTH_DIVIDE_12_5   0
+#define TYPE_WIDTH_DIVIDE_12_6   0
+#define TYPE_WIDTH_DIVIDE_12_7   0
+#define TYPE_WIDTH_DIVIDE_12_8   0
+#define TYPE_WIDTH_DIVIDE_12_9   0
+#define TYPE_WIDTH_DIVIDE_12_10  0
+#define TYPE_WIDTH_DIVIDE_12_11  0
+#define TYPE_WIDTH_DIVIDE_12_12  1
 
 #define LOOP_TYPE_WIDTH_DIVIDE_0_0(  nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_0_1(  nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
@@ -186,6 +216,7 @@
 #define LOOP_TYPE_WIDTH_DIVIDE_0_9(  nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_0_10( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_0_11( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_0_12( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_1_0(  nested, action, ...) LOOP_##nested( 8, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_1_1(  nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_1_2(  nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
@@ -198,6 +229,7 @@
 #define LOOP_TYPE_WIDTH_DIVIDE_1_9(  nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_1_10( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_1_11( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_1_12( nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_2_0(  nested, action, ...) LOOP_##nested( 8, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_2_1(  nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_2_2(  nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
@@ -210,6 +242,7 @@
 #define LOOP_TYPE_WIDTH_DIVIDE_2_9(  nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_2_10( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_2_11( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_2_12( nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_3_0(  nested, action, ...) LOOP_##nested( 8, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_3_1(  nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_3_2(  nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
@@ -222,6 +255,7 @@
 #define LOOP_TYPE_WIDTH_DIVIDE_3_9(  nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_3_10( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_3_11( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_3_12( nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_4_0(  nested, action, ...) LOOP_##nested(16, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_4_1(  nested, action, ...) LOOP_##nested( 2, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_4_2(  nested, action, ...) LOOP_##nested( 2, action, __VA_ARGS__)
@@ -234,6 +268,7 @@
 #define LOOP_TYPE_WIDTH_DIVIDE_4_9(  nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_4_10( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_4_11( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_4_12( nested, action, ...) LOOP_##nested( 2, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_5_0(  nested, action, ...) LOOP_##nested(16, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_5_1(  nested, action, ...) LOOP_##nested( 2, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_5_2(  nested, action, ...) LOOP_##nested( 2, action, __VA_ARGS__)
@@ -246,6 +281,7 @@
 #define LOOP_TYPE_WIDTH_DIVIDE_5_9(  nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_5_10( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_5_11( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_5_12( nested, action, ...) LOOP_##nested( 2, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_6_0(  nested, action, ...) LOOP_##nested(32, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_6_1(  nested, action, ...) LOOP_##nested( 4, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_6_2(  nested, action, ...) LOOP_##nested( 4, action, __VA_ARGS__)
@@ -258,6 +294,7 @@
 #define LOOP_TYPE_WIDTH_DIVIDE_6_9(  nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_6_10( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_6_11( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_6_12( nested, action, ...) LOOP_##nested( 4, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_7_0(  nested, action, ...) LOOP_##nested(32, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_7_1(  nested, action, ...) LOOP_##nested( 4, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_7_2(  nested, action, ...) LOOP_##nested( 4, action, __VA_ARGS__)
@@ -270,6 +307,7 @@
 #define LOOP_TYPE_WIDTH_DIVIDE_7_9(  nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_7_10( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_7_11( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_7_12( nested, action, ...) LOOP_##nested( 4, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_8_0(  nested, action, ...) LOOP_##nested(64, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_8_1(  nested, action, ...) LOOP_##nested( 8, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_8_2(  nested, action, ...) LOOP_##nested( 8, action, __VA_ARGS__)
@@ -282,6 +320,7 @@
 #define LOOP_TYPE_WIDTH_DIVIDE_8_9(  nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_8_10( nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_8_11( nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_8_12( nested, action, ...) LOOP_##nested( 8, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_9_0(  nested, action, ...) LOOP_##nested(64, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_9_1(  nested, action, ...) LOOP_##nested( 8, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_9_2(  nested, action, ...) LOOP_##nested( 8, action, __VA_ARGS__)
@@ -294,6 +333,7 @@
 #define LOOP_TYPE_WIDTH_DIVIDE_9_9(  nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_9_10( nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_9_11( nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_9_12( nested, action, ...) LOOP_##nested( 8, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_10_0( nested, action, ...) LOOP_##nested(64, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_10_1( nested, action, ...) LOOP_##nested( 8, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_10_2( nested, action, ...) LOOP_##nested( 8, action, __VA_ARGS__)
@@ -306,6 +346,7 @@
 #define LOOP_TYPE_WIDTH_DIVIDE_10_9( nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_10_10(nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_10_11(nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_10_12(nested, action, ...) LOOP_##nested( 8, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_11_0( nested, action, ...) LOOP_##nested(64, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_11_1( nested, action, ...) LOOP_##nested( 8, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_11_2( nested, action, ...) LOOP_##nested( 8, action, __VA_ARGS__)
@@ -318,6 +359,20 @@
 #define LOOP_TYPE_WIDTH_DIVIDE_11_9( nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_11_10(nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
 #define LOOP_TYPE_WIDTH_DIVIDE_11_11(nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_11_12(nested, action, ...) LOOP_##nested( 8, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_12_0( nested, action, ...) LOOP_##nested( 8, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_12_1( nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_12_2( nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_12_3( nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_12_4( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_12_5( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_12_6( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_12_7( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_12_8( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_12_9( nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_12_10(nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_12_11(nested, action, ...) LOOP_##nested( 0, action, __VA_ARGS__)
+#define LOOP_TYPE_WIDTH_DIVIDE_12_12(nested, action, ...) LOOP_##nested( 1, action, __VA_ARGS__)
 
 #define IF_TYPE_WIDTH_EQUAL_0_0(  action) action
 #define IF_TYPE_WIDTH_EQUAL_0_1(  action)
@@ -331,6 +386,7 @@
 #define IF_TYPE_WIDTH_EQUAL_0_9(  action)
 #define IF_TYPE_WIDTH_EQUAL_0_10( action)
 #define IF_TYPE_WIDTH_EQUAL_0_11( action)
+#define IF_TYPE_WIDTH_EQUAL_0_12( action)
 #define IF_TYPE_WIDTH_EQUAL_1_0(  action)
 #define IF_TYPE_WIDTH_EQUAL_1_1(  action) action
 #define IF_TYPE_WIDTH_EQUAL_1_2(  action) action
@@ -343,6 +399,7 @@
 #define IF_TYPE_WIDTH_EQUAL_1_9(  action)
 #define IF_TYPE_WIDTH_EQUAL_1_10( action)
 #define IF_TYPE_WIDTH_EQUAL_1_11( action)
+#define IF_TYPE_WIDTH_EQUAL_1_12( action) action
 #define IF_TYPE_WIDTH_EQUAL_2_0(  action)
 #define IF_TYPE_WIDTH_EQUAL_2_1(  action) action
 #define IF_TYPE_WIDTH_EQUAL_2_2(  action) action
@@ -355,6 +412,7 @@
 #define IF_TYPE_WIDTH_EQUAL_2_9(  action)
 #define IF_TYPE_WIDTH_EQUAL_2_10( action)
 #define IF_TYPE_WIDTH_EQUAL_2_11( action)
+#define IF_TYPE_WIDTH_EQUAL_2_12( action) action
 #define IF_TYPE_WIDTH_EQUAL_3_0(  action)
 #define IF_TYPE_WIDTH_EQUAL_3_1(  action) action
 #define IF_TYPE_WIDTH_EQUAL_3_2(  action) action
@@ -367,6 +425,7 @@
 #define IF_TYPE_WIDTH_EQUAL_3_9(  action)
 #define IF_TYPE_WIDTH_EQUAL_3_10( action)
 #define IF_TYPE_WIDTH_EQUAL_3_11( action)
+#define IF_TYPE_WIDTH_EQUAL_3_12( action) action
 #define IF_TYPE_WIDTH_EQUAL_4_0(  action)
 #define IF_TYPE_WIDTH_EQUAL_4_1(  action)
 #define IF_TYPE_WIDTH_EQUAL_4_2(  action)
@@ -379,6 +438,7 @@
 #define IF_TYPE_WIDTH_EQUAL_4_9(  action)
 #define IF_TYPE_WIDTH_EQUAL_4_10( action)
 #define IF_TYPE_WIDTH_EQUAL_4_11( action)
+#define IF_TYPE_WIDTH_EQUAL_4_12( action)
 #define IF_TYPE_WIDTH_EQUAL_5_0(  action)
 #define IF_TYPE_WIDTH_EQUAL_5_1(  action)
 #define IF_TYPE_WIDTH_EQUAL_5_2(  action)
@@ -391,6 +451,7 @@
 #define IF_TYPE_WIDTH_EQUAL_5_9(  action)
 #define IF_TYPE_WIDTH_EQUAL_5_10( action)
 #define IF_TYPE_WIDTH_EQUAL_5_11( action)
+#define IF_TYPE_WIDTH_EQUAL_5_12( action)
 #define IF_TYPE_WIDTH_EQUAL_6_0(  action)
 #define IF_TYPE_WIDTH_EQUAL_6_1(  action)
 #define IF_TYPE_WIDTH_EQUAL_6_2(  action)
@@ -403,6 +464,7 @@
 #define IF_TYPE_WIDTH_EQUAL_6_9(  action)
 #define IF_TYPE_WIDTH_EQUAL_6_10( action)
 #define IF_TYPE_WIDTH_EQUAL_6_11( action)
+#define IF_TYPE_WIDTH_EQUAL_6_12( action)
 #define IF_TYPE_WIDTH_EQUAL_7_0(  action)
 #define IF_TYPE_WIDTH_EQUAL_7_1(  action)
 #define IF_TYPE_WIDTH_EQUAL_7_2(  action)
@@ -415,6 +477,7 @@
 #define IF_TYPE_WIDTH_EQUAL_7_9(  action)
 #define IF_TYPE_WIDTH_EQUAL_7_10( action)
 #define IF_TYPE_WIDTH_EQUAL_7_11( action)
+#define IF_TYPE_WIDTH_EQUAL_7_12( action)
 #define IF_TYPE_WIDTH_EQUAL_8_0(  action)
 #define IF_TYPE_WIDTH_EQUAL_8_1(  action)
 #define IF_TYPE_WIDTH_EQUAL_8_2(  action)
@@ -427,6 +490,7 @@
 #define IF_TYPE_WIDTH_EQUAL_8_9(  action) action
 #define IF_TYPE_WIDTH_EQUAL_8_10( action) action
 #define IF_TYPE_WIDTH_EQUAL_8_11( action) action
+#define IF_TYPE_WIDTH_EQUAL_8_12( action)
 #define IF_TYPE_WIDTH_EQUAL_9_0(  action)
 #define IF_TYPE_WIDTH_EQUAL_9_1(  action)
 #define IF_TYPE_WIDTH_EQUAL_9_2(  action)
@@ -439,6 +503,7 @@
 #define IF_TYPE_WIDTH_EQUAL_9_9(  action) action
 #define IF_TYPE_WIDTH_EQUAL_9_10( action) action
 #define IF_TYPE_WIDTH_EQUAL_9_11( action) action
+#define IF_TYPE_WIDTH_EQUAL_9_12( action)
 #define IF_TYPE_WIDTH_EQUAL_10_0( action)
 #define IF_TYPE_WIDTH_EQUAL_10_1( action)
 #define IF_TYPE_WIDTH_EQUAL_10_2( action)
@@ -451,6 +516,7 @@
 #define IF_TYPE_WIDTH_EQUAL_10_9( action) action
 #define IF_TYPE_WIDTH_EQUAL_10_10(action) action
 #define IF_TYPE_WIDTH_EQUAL_10_11(action) action
+#define IF_TYPE_WIDTH_EQUAL_10_12(action)
 #define IF_TYPE_WIDTH_EQUAL_11_0( action)
 #define IF_TYPE_WIDTH_EQUAL_11_1( action)
 #define IF_TYPE_WIDTH_EQUAL_11_2( action)
@@ -463,6 +529,20 @@
 #define IF_TYPE_WIDTH_EQUAL_11_9( action) action
 #define IF_TYPE_WIDTH_EQUAL_11_10(action) action
 #define IF_TYPE_WIDTH_EQUAL_11_11(action) action
+#define IF_TYPE_WIDTH_EQUAL_11_12(action)
+#define IF_TYPE_WIDTH_EQUAL_12_0( action)
+#define IF_TYPE_WIDTH_EQUAL_12_1( action) action
+#define IF_TYPE_WIDTH_EQUAL_12_2( action) action
+#define IF_TYPE_WIDTH_EQUAL_12_3( action) action
+#define IF_TYPE_WIDTH_EQUAL_12_4( action)
+#define IF_TYPE_WIDTH_EQUAL_12_5( action)
+#define IF_TYPE_WIDTH_EQUAL_12_6( action)
+#define IF_TYPE_WIDTH_EQUAL_12_7( action)
+#define IF_TYPE_WIDTH_EQUAL_12_8( action)
+#define IF_TYPE_WIDTH_EQUAL_12_9( action)
+#define IF_TYPE_WIDTH_EQUAL_12_10(action)
+#define IF_TYPE_WIDTH_EQUAL_12_11(action)
+#define IF_TYPE_WIDTH_EQUAL_12_12(action) action
 
 #define IF_TYPE_WIDTH_DIVIDABLE_0_0(  action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_0_1(  action)
@@ -476,6 +556,7 @@
 #define IF_TYPE_WIDTH_DIVIDABLE_0_9(  action)
 #define IF_TYPE_WIDTH_DIVIDABLE_0_10( action)
 #define IF_TYPE_WIDTH_DIVIDABLE_0_11( action)
+#define IF_TYPE_WIDTH_DIVIDABLE_0_12( action)
 #define IF_TYPE_WIDTH_DIVIDABLE_1_0(  action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_1_1(  action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_1_2(  action) action
@@ -488,6 +569,7 @@
 #define IF_TYPE_WIDTH_DIVIDABLE_1_9(  action)
 #define IF_TYPE_WIDTH_DIVIDABLE_1_10( action)
 #define IF_TYPE_WIDTH_DIVIDABLE_1_11( action)
+#define IF_TYPE_WIDTH_DIVIDABLE_1_12( action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_2_0(  action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_2_1(  action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_2_2(  action) action
@@ -500,6 +582,7 @@
 #define IF_TYPE_WIDTH_DIVIDABLE_2_9(  action)
 #define IF_TYPE_WIDTH_DIVIDABLE_2_10( action)
 #define IF_TYPE_WIDTH_DIVIDABLE_2_11( action)
+#define IF_TYPE_WIDTH_DIVIDABLE_2_12( action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_3_0(  action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_3_1(  action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_3_2(  action) action
@@ -512,6 +595,7 @@
 #define IF_TYPE_WIDTH_DIVIDABLE_3_9(  action)
 #define IF_TYPE_WIDTH_DIVIDABLE_3_10( action)
 #define IF_TYPE_WIDTH_DIVIDABLE_3_11( action)
+#define IF_TYPE_WIDTH_DIVIDABLE_3_12( action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_4_0(  action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_4_1(  action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_4_2(  action) action
@@ -524,6 +608,7 @@
 #define IF_TYPE_WIDTH_DIVIDABLE_4_9(  action)
 #define IF_TYPE_WIDTH_DIVIDABLE_4_10( action)
 #define IF_TYPE_WIDTH_DIVIDABLE_4_11( action)
+#define IF_TYPE_WIDTH_DIVIDABLE_4_12( action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_5_0(  action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_5_1(  action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_5_2(  action) action
@@ -536,6 +621,7 @@
 #define IF_TYPE_WIDTH_DIVIDABLE_5_9(  action)
 #define IF_TYPE_WIDTH_DIVIDABLE_5_10( action)
 #define IF_TYPE_WIDTH_DIVIDABLE_5_11( action)
+#define IF_TYPE_WIDTH_DIVIDABLE_5_12( action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_6_0(  action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_6_1(  action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_6_2(  action) action
@@ -548,6 +634,7 @@
 #define IF_TYPE_WIDTH_DIVIDABLE_6_9(  action)
 #define IF_TYPE_WIDTH_DIVIDABLE_6_10( action)
 #define IF_TYPE_WIDTH_DIVIDABLE_6_11( action)
+#define IF_TYPE_WIDTH_DIVIDABLE_6_12( action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_7_0(  action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_7_1(  action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_7_2(  action) action
@@ -560,6 +647,7 @@
 #define IF_TYPE_WIDTH_DIVIDABLE_7_9(  action)
 #define IF_TYPE_WIDTH_DIVIDABLE_7_10( action)
 #define IF_TYPE_WIDTH_DIVIDABLE_7_11( action)
+#define IF_TYPE_WIDTH_DIVIDABLE_7_12( action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_8_0(  action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_8_1(  action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_8_2(  action) action
@@ -572,6 +660,7 @@
 #define IF_TYPE_WIDTH_DIVIDABLE_8_9(  action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_8_10( action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_8_11( action) action
+#define IF_TYPE_WIDTH_DIVIDABLE_8_12( action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_9_0(  action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_9_1(  action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_9_2(  action) action
@@ -584,6 +673,7 @@
 #define IF_TYPE_WIDTH_DIVIDABLE_9_9(  action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_9_10( action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_9_11( action) action
+#define IF_TYPE_WIDTH_DIVIDABLE_9_12( action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_10_0( action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_10_1( action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_10_2( action) action
@@ -596,6 +686,7 @@
 #define IF_TYPE_WIDTH_DIVIDABLE_10_9( action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_10_10(action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_10_11(action) action
+#define IF_TYPE_WIDTH_DIVIDABLE_10_12(action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_11_0( action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_11_1( action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_11_2( action) action
@@ -608,22 +699,54 @@
 #define IF_TYPE_WIDTH_DIVIDABLE_11_9( action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_11_10(action) action
 #define IF_TYPE_WIDTH_DIVIDABLE_11_11(action) action
+#define IF_TYPE_WIDTH_DIVIDABLE_11_12(action) action
+#define IF_TYPE_WIDTH_DIVIDABLE_12_0( action) action
+#define IF_TYPE_WIDTH_DIVIDABLE_12_1( action) action
+#define IF_TYPE_WIDTH_DIVIDABLE_12_2( action) action
+#define IF_TYPE_WIDTH_DIVIDABLE_12_3( action) action
+#define IF_TYPE_WIDTH_DIVIDABLE_12_4( action)
+#define IF_TYPE_WIDTH_DIVIDABLE_12_5( action)
+#define IF_TYPE_WIDTH_DIVIDABLE_12_6( action)
+#define IF_TYPE_WIDTH_DIVIDABLE_12_7( action)
+#define IF_TYPE_WIDTH_DIVIDABLE_12_8( action)
+#define IF_TYPE_WIDTH_DIVIDABLE_12_9( action)
+#define IF_TYPE_WIDTH_DIVIDABLE_12_10(action)
+#define IF_TYPE_WIDTH_DIVIDABLE_12_11(action)
+#define IF_TYPE_WIDTH_DIVIDABLE_12_12(action) action
 
 #define SINGLE_ASSERT_TYPE(T, U)\
-    static_assert(T == U ? true : !std::is_same_v<TYPE(T), TYPE(U)>)
-#define ASSERT_TYPE(T) LOOP_TYPES_1(SINGLE_ASSERT_TYPE, T)
-LOOP_TYPES_0(ASSERT_TYPE);
+    static_assert(T == U ? true : !std::is_same_v<TYPE(T), TYPE(U)>);
+#define        ASSERT_TYPE(T) LOOP_TYPES_1(SINGLE_ASSERT_TYPE, T);
+LOOP_TYPES_0(  ASSERT_TYPE)
+#undef  SINGLE_ASSERT_TYPE
+#undef         ASSERT_TYPE
 
 #define SINGLE_ASSERT_TYPE_WIDTH_DIVIDE(T, U)\
-    static_assert(TYPE_WIDTH_DIVIDE(T, U) == widthof(TYPE(T)) / widthof(TYPE(U)))
-#define ASSERT_TYPE_WIDTH_DIVIDE(T) LOOP_TYPES_1(SINGLE_ASSERT_TYPE_WIDTH_DIVIDE, T)
-LOOP_TYPES_0(ASSERT_TYPE_WIDTH_DIVIDE);
+    static_assert(TYPE_WIDTH_DIVIDE(T, U) == widthof(TYPE(T)) / widthof(TYPE(U)));
+#define        ASSERT_TYPE_WIDTH_DIVIDE(T) LOOP_TYPES_1(SINGLE_ASSERT_TYPE_WIDTH_DIVIDE, T);
+LOOP_TYPES_0(  ASSERT_TYPE_WIDTH_DIVIDE)
+#undef  SINGLE_ASSERT_TYPE_WIDTH_DIVIDE
+#undef         ASSERT_TYPE_WIDTH_DIVIDE
+
+#define SINGLE_ASSERT_LOOP_TYPE_WIDTH_DIVIDE_FUNCTION(index) " "
+#define SINGLE_ASSERT_LOOP_TYPE_WIDTH_DIVIDE(T, U)\
+    static_assert(sizeof "" LOOP_TYPE_WIDTH_DIVIDE_2(T, U, SINGLE_ASSERT_LOOP_TYPE_WIDTH_DIVIDE_FUNCTION) == widthof(TYPE(T)) / widthof(TYPE(U)) + 1);
+#define        ASSERT_LOOP_TYPE_WIDTH_DIVIDE(T) LOOP_TYPES_1(SINGLE_ASSERT_LOOP_TYPE_WIDTH_DIVIDE, T);
+LOOP_TYPES_0(  ASSERT_LOOP_TYPE_WIDTH_DIVIDE)
+#undef  SINGLE_ASSERT_LOOP_TYPE_WIDTH_DIVIDE_FUNCTION
+#undef  SINGLE_ASSERT_LOOP_TYPE_WIDTH_DIVIDE
+#undef         ASSERT_LOOP_TYPE_WIDTH_DIVIDE
 
 #define SINGLE_ASSERT_TYPE_WIDTH_EQUAL(T, U)\
-    static_assert(widthof(TYPE(T)) == widthof(TYPE(U))     ? IF_TYPE_WIDTH_EQUAL(    T, U, 1) + 0 : IF_TYPE_WIDTH_EQUAL(    T, U, 1) - 1)
+    static_assert(widthof(TYPE(T)) == widthof(TYPE(U)) ? IF_TYPE_WIDTH_EQUAL(T, U, 1) + 0 : IF_TYPE_WIDTH_EQUAL(T, U, 1) - 1);
+#define        ASSERT_TYPE_WIDTH_EQUAL(T) LOOP_TYPES_1(SINGLE_ASSERT_TYPE_WIDTH_EQUAL, T);
+LOOP_TYPES_0(  ASSERT_TYPE_WIDTH_EQUAL)
+#undef  SINGLE_ASSERT_TYPE_WIDTH_EQUAL
+#undef         ASSERT_TYPE_WIDTH_EQUAL
+
 #define SINGLE_ASSERT_TYPE_WIDTH_DIVIDABLE(T, U)\
-    static_assert(widthof(TYPE(T)) / widthof(TYPE(U)) != 0 ? IF_TYPE_WIDTH_DIVIDABLE(T, U, 1) + 0 : IF_TYPE_WIDTH_DIVIDABLE(T, U, 1) - 1)
-#define ASSERT_TYPE_WIDTH_EQUAL(    T) LOOP_TYPES_1(SINGLE_ASSERT_TYPE_WIDTH_EQUAL,     T)
-#define ASSERT_TYPE_WIDTH_DIVIDABLE(T) LOOP_TYPES_1(SINGLE_ASSERT_TYPE_WIDTH_DIVIDABLE, T)
-LOOP_TYPES_0(ASSERT_TYPE_WIDTH_EQUAL);
-LOOP_TYPES_0(ASSERT_TYPE_WIDTH_DIVIDABLE);
+    static_assert(widthof(TYPE(T)) / widthof(TYPE(U)) != 0 ? IF_TYPE_WIDTH_DIVIDABLE(T, U, 1) + 0 : IF_TYPE_WIDTH_DIVIDABLE(T, U, 1) - 1);
+#define        ASSERT_TYPE_WIDTH_DIVIDABLE(T) LOOP_TYPES_1(SINGLE_ASSERT_TYPE_WIDTH_DIVIDABLE, T);
+LOOP_TYPES_0(  ASSERT_TYPE_WIDTH_DIVIDABLE)
+#undef  SINGLE_ASSERT_TYPE_WIDTH_DIVIDABLE
+#undef         ASSERT_TYPE_WIDTH_DIVIDABLE
