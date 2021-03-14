@@ -1,4 +1,5 @@
 #include <verbarith/expression_base.hpp>
+#include <verbarith/expression_sort.hpp>
 #include <verbarith/resource_handler.ipp>
 
 namespace vra
@@ -23,6 +24,11 @@ namespace vra
     expression_base::expression_base(expression_base&&) noexcept = default;
     expression_base& expression_base::operator=(expression_base&&) noexcept = default;
 
+    std::size_t expression_base::width() const noexcept
+    {
+        return resource_context::apply(Z3_get_bv_sort_size, expression_sort(base()));
+    }
+
     bool expression_base::conclusive() const noexcept
     {
         return resource_context::apply(Z3_is_numeral_ast, base());
@@ -30,6 +36,23 @@ namespace vra
     bool expression_base::operator==(expression_base const& other) const noexcept
     {
         return resource_context::apply(Z3_is_eq_ast, base(), other.base());
+    }
+
+    void expression_base::substitute(std::string const& symbol, expression_base const& value) noexcept
+    {
+        expression_base const key(
+            resource_context::apply(
+                Z3_mk_const,
+                resource_context::apply(
+                    Z3_mk_string_symbol,
+                    symbol.c_str()),
+                expression_sort(value.base())));
+
+        auto* const key_base = key.base();
+        auto* const value_base = value.base();
+
+        base(resource_context::apply(Z3_substitute, base(), 1, &key_base, &value_base));
+        base(resource_context::apply(Z3_simplify, base()));
     }
 
     std::ostream& operator<<(std::ostream& stream, expression_base const& expression) noexcept

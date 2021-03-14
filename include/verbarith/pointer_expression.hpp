@@ -4,22 +4,22 @@
 
 namespace vra
 {
-    template <integral_expression_typename T>
     class pointer_expression : public expression<std::uintptr_t>
     {
     public:
 
         using expression::expression;
 
+        template <integral_expression_typename T>
         [[nodiscard]] expression<T> dereference() const noexcept;
     };
 }
 
 namespace std
 {
-    template <vra::expression_typename T>
-    struct hash<vra::pointer_expression<T>>
+    template <>
+    struct hash<vra::pointer_expression>
     {
-        [[nodiscard]] std::size_t operator()(vra::pointer_expression<T> const&) const noexcept;
+        [[nodiscard]] std::size_t operator()(vra::pointer_expression const&) const noexcept;
     };
 }

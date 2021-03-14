@@ -12,7 +12,7 @@ namespace vra
 
     class expression_base
     {
-        friend std::hash<expression_base>;
+        friend struct std::hash<expression_base>;
 
         std::unique_ptr<resource_handler<_Z3_ast>> base_;
 
@@ -30,8 +30,12 @@ namespace vra
         expression_base(expression_base&&) noexcept;
         expression_base& operator=(expression_base&&) noexcept;
 
+        [[nodiscard]] std::size_t width() const noexcept;
+
         [[nodiscard]] bool conclusive() const noexcept;
         [[nodiscard]] bool operator==(expression_base const&) const noexcept;
+
+        void substitute(std::string const& symbol, expression_base const& value) noexcept;
 
         friend std::ostream& operator<<(std::ostream&, expression_base const&) noexcept;
 

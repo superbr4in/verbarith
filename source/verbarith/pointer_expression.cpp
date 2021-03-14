@@ -5,7 +5,7 @@
 namespace vra
 {
     template <integral_expression_typename T>
-    expression<T> pointer_expression<T>::dereference() const noexcept
+    expression<T> pointer_expression::dereference() const noexcept
     {
         static auto const indirection = expression_operation::create<widthof(T), widthof(std::uintptr_t)>("deref" + std::to_string(widthof(T)));
 
@@ -17,17 +17,16 @@ namespace vra
 
 namespace std // NOLINT [cert-dcl58-cpp]
 {
-    template <vra::expression_typename T>
-    std::size_t hash<vra::pointer_expression<T>>::operator()(vra::pointer_expression<T> const& value) const noexcept
+    std::size_t hash<vra::pointer_expression>::operator()(vra::pointer_expression const& value) const noexcept
     {
         static hash<vra::expression_base> constexpr base_hasher;
+
         return base_hasher(value);
     }
 }
 
-#define POINTER_EXPRESSION(T) pointer_expression<TYPE(T)>
+#define EXPRESSION(T) expression<TYPE(T)>
 
 #define INSTANTIATE_POINTER_EXPRESSION(T)\
-    template class           vra::POINTER_EXPRESSION(T) ;\
-    template class std::hash<vra::POINTER_EXPRESSION(T)>;
+    template vra::EXPRESSION(T) vra::pointer_expression::dereference<TYPE(T)>() const;
 LOOP_TYPES_0(INSTANTIATE_POINTER_EXPRESSION)

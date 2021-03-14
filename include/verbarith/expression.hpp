@@ -5,6 +5,8 @@
 
 namespace vra
 {
+    class pointer_expression;
+
     template <typename T>
     concept integral_expression_typename =
             std::same_as<T, std::byte>
@@ -20,7 +22,6 @@ namespace vra
     {
         template <expression_typename>
         friend class expression;
-        template <integral_expression_typename>
         friend class pointer_expression;
 
         using expression_base::expression_base;
@@ -99,8 +100,20 @@ namespace vra
         [[nodiscard]] static expression join(std::array<expression<U>, widthof(T) / widthof(U)> const&) noexcept;
     };
     template <>
-    class expression<void> : public expression_base
-    { };
+    class expression<> : public expression_base
+    {
+    public:
+
+        template <integral_expression_typename T>
+        explicit expression(expression<T> const&) noexcept;
+        template <integral_expression_typename T>
+        expression& operator=(expression<T> const&);
+
+        template <integral_expression_typename T>
+        explicit expression(expression<T>&&) noexcept;
+        template <integral_expression_typename T>
+        expression& operator=(expression<T>&&);
+    };
 }
 
 namespace std

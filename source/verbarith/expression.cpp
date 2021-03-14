@@ -308,6 +308,44 @@ namespace vra
             return expression(resource_context::apply(Z3_mk_concat, join<INDEX + 1>(parts).base(), std::get<INDEX>(parts).base()));
         }
     }
+
+    template <integral_expression_typename T>
+    expression<>::expression(expression<T> const& other) noexcept :
+        // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
+        expression(reinterpret_cast<expression const&>(other))
+    {
+        static_assert(sizeof(expression<T>) == sizeof(expression));
+    }
+    template <integral_expression_typename T>
+    expression<>& expression<>::operator=(expression<T> const& other)
+    {
+        static_assert(sizeof(expression<T>) == sizeof(expression));
+
+        if (widthof(T) != other.width())
+            throw std::logic_error("Invalid width");
+
+        // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
+        return operator=(reinterpret_cast<expression const&>(other));
+    }
+
+    template <integral_expression_typename T>
+    expression<>::expression(expression<T>&& other) noexcept :
+        // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
+        expression(reinterpret_cast<expression&&>(other))
+    {
+        static_assert(sizeof(expression<T>) == sizeof(expression));
+    }
+    template <integral_expression_typename T>
+    expression<>& expression<>::operator=(expression<T>&& other)
+    {
+        static_assert(sizeof(expression<T>) == sizeof(expression));
+
+        if (widthof(T) != other.width())
+            throw std::logic_error("Invalid width");
+
+        // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
+        return operator=(reinterpret_cast<expression&&>(other));
+    }
 }
 
 namespace std // NOLINT [cert-dcl58-cpp]
@@ -316,6 +354,7 @@ namespace std // NOLINT [cert-dcl58-cpp]
     std::size_t hash<vra::expression<T>>::operator()(vra::expression<T> const& value) const noexcept
     {
         static hash<vra::expression_base> constexpr base_hasher;
+
         return base_hasher(value);
     }
 }
@@ -333,3 +372,12 @@ namespace std // NOLINT [cert-dcl58-cpp]
     template class std::hash<vra::EXPRESSION(T)>;\
     LOOP_TYPES_1(INSTANTIATE_EXPRESSION_SQUARE, T);
 LOOP_TYPES_0(INSTANTIATE_EXPRESSION)
+
+#define INSTANTIATE_ANONYMOUS_EXPRESSION(T)\
+    template                    vra::expression<>::expression(EXPRESSION(T) const&);\
+    template vra::expression<>& vra::expression<>::operator=( EXPRESSION(T) const&);\
+    template                    vra::expression<>::expression(EXPRESSION(T)&&);\
+    template vra::expression<>& vra::expression<>::operator=( EXPRESSION(T)&&);
+LOOP_TYPES_0(INSTANTIATE_ANONYMOUS_EXPRESSION)
+
+template class std::hash<vra::expression<>>;
