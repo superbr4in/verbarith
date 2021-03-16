@@ -1,30 +1,84 @@
 #pragma once
 
-#include <verbarith/expression_base.hpp>
+#include <memory>
+
 #include <verbarith/width.hpp>
+
+// NOLINTNEXTLINE [cert-dcl51-cpp]
+struct _Z3_ast;
 
 namespace vra
 {
-    class pointer_expression;
-
     template <typename T>
     concept integral_expression_typename =
             std::same_as<T, std::byte>
         || (std::same_as<T, std::remove_cvref_t<T>> && std::integral<T>);
 
+    template <typename>
+    class resource_handler;
+
+    template <typename = void,
+        // Enables partial specializations with type constraints
+        typename = void>
+    class expression;
+
     template <typename T>
-    concept expression_typename =
-            std::same_as<T, void>
-        ||  integral_expression_typename<T>;
+    bool operator==(expression<T> const&, expression<T> const&) noexcept;
+    template <typename T>
+    std::ostream& operator<<(std::ostream&, expression<T> const&) noexcept;
 
-    template <expression_typename T = void>
-    class expression : public expression_base
+    template <>
+    class expression<>
     {
-        template <expression_typename>
+        template <typename, typename>
         friend class expression;
-        friend class pointer_expression;
+        friend struct std::hash<expression>;
 
-        using expression_base::expression_base;
+        friend bool operator== <>(expression const&, expression const&) noexcept;
+        friend std::ostream& operator<< <>(std::ostream&, expression const&) noexcept;
+
+        std::unique_ptr<resource_handler<_Z3_ast>> base_;
+
+        explicit expression(_Z3_ast*) noexcept;
+
+    public:
+
+        virtual ~expression() noexcept;
+
+        template <integral_expression_typename T>
+        explicit expression(expression<T> const&) noexcept;
+        expression(expression const&) noexcept;
+        template <integral_expression_typename T>
+        expression& operator=(expression<T> const&);
+        expression& operator=(expression const&) noexcept;
+
+        template <integral_expression_typename T>
+        explicit expression(expression<T>&&) noexcept;
+        expression(expression&&) noexcept;
+        template <integral_expression_typename T>
+        expression& operator=(expression<T>&&);
+        expression& operator=(expression&&) noexcept;
+
+        [[nodiscard]] bool conclusive() const noexcept;
+
+        [[nodiscard]] std::size_t width() const noexcept;
+
+    private:
+
+        [[nodiscard]] _Z3_ast* base() const noexcept;
+        void base(_Z3_ast*) noexcept;
+    };
+    template <integral_expression_typename T>
+    class expression<T> : public expression<>
+    {
+        template <typename, typename>
+        friend class expression;
+
+        friend bool operator== <>(expression const&, expression const&) noexcept;
+        friend std::ostream& operator<< <>(std::ostream&, expression const&) noexcept;
+
+        template <typename = void>
+        explicit expression(_Z3_ast*) noexcept;
 
     public:
 
@@ -49,6 +103,9 @@ namespace vra
         [[nodiscard]] expression<U> extract() const noexcept;
 
         [[nodiscard]] T evaluate() const;
+
+        template <integral_expression_typename U>
+        [[nodiscard]] expression<U> dereference() const noexcept;
 
         [[nodiscard]] expression<bool> equal(expression const&) const noexcept;
         [[nodiscard]] expression<bool> less(expression const&) const noexcept;
@@ -99,26 +156,19 @@ namespace vra
             requires (widthof(U) <= widthof(T))
         [[nodiscard]] static expression join(std::array<expression<U>, widthof(T) / widthof(U)> const&) noexcept;
     };
-    template <>
-    class expression<> : public expression_base
-    {
-    public:
 
-        template <integral_expression_typename T>
-        explicit expression(expression<T> const&) noexcept;
-        template <integral_expression_typename T>
-        expression& operator=(expression<T> const&);
-
-        template <integral_expression_typename T>
-        explicit expression(expression<T>&&) noexcept;
-        template <integral_expression_typename T>
-        expression& operator=(expression<T>&&);
-    };
+    template <typename T>
+    expression(T) -> expression<T>;
 }
 
 namespace std
 {
-    template <vra::expression_typename T>
+    template <>
+    struct hash<vra::expression<>>
+    {
+        [[nodiscard]] std::size_t operator()(vra::expression<> const&) const noexcept;
+    };
+    template <vra::integral_expression_typename T>
     struct hash<vra::expression<T>>
     {
         [[nodiscard]] std::size_t operator()(vra::expression<T> const&) const noexcept;

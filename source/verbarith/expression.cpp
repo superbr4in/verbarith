@@ -1,21 +1,110 @@
 #include <algorithm>
 
 #include <verbarith/expression.hpp>
-#include <verbarith/expression_sort.ipp>
+#include <verbarith/expression_operation.ipp>
 #include <verbarith/preprocessor_types.hpp>
 
 namespace vra
 {
-    template <expression_typename T>
-    static expression<T> const zero(0);
-    template <expression_typename T>
-    static expression<T> const one(static_cast<T>(1));
+    template <typename T>
+    bool operator==(expression<T> const& expression_1, expression<T> const& expression_2) noexcept
+    {
+        return resource_context::apply(Z3_is_eq_ast, expression_1.base(), expression_2.base());
+    }
+    template <typename T>
+    std::ostream& operator<<(std::ostream& stream, expression<T> const& expression) noexcept
+    {
+        stream << resource_context::apply(Z3_ast_to_string, expression.base());
 
-    template <expression_typename T>
+        return stream;
+    }
+
+    expression<>::expression(_Z3_ast* const resource) noexcept :
+        base_(std::make_unique<resource_handler<_Z3_ast>>(resource))
+    { }
+
+    expression<>::~expression() noexcept = default;
+
+    template <integral_expression_typename T>
+    expression<>::expression(expression<T> const& other) noexcept :
+        // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
+        expression(reinterpret_cast<expression const&>(other))
+    {
+        static_assert(sizeof(expression<T>) == sizeof(expression));
+    }
+    expression<>::expression(expression const& other) noexcept :
+        base_(std::make_unique<resource_handler<_Z3_ast>>(other.base()))
+    { }
+    template <integral_expression_typename T>
+    expression<>& expression<>::operator=(expression<T> const& other)
+    {
+        static_assert(sizeof(expression<T>) == sizeof(expression));
+
+        if (widthof(T) != other.width())
+            throw std::logic_error("Invalid width");
+
+        // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
+        return operator=(reinterpret_cast<expression const&>(other));
+    }
+    expression<>& expression<>::operator=(expression const& other) noexcept
+    {
+        if (&other != this)
+            base_ = std::make_unique<resource_handler<_Z3_ast>>(other.base());
+
+        return *this;
+    }
+
+    template <integral_expression_typename T>
+    expression<>::expression(expression<T>&& other) noexcept :
+        // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
+        expression(reinterpret_cast<expression&&>(other))
+    {
+        static_assert(sizeof(expression<T>) == sizeof(expression));
+    }
+    expression<>::expression(expression&&) noexcept = default;
+    template <integral_expression_typename T>
+    expression<>& expression<>::operator=(expression<T>&& other)
+    {
+        static_assert(sizeof(expression<T>) == sizeof(expression));
+
+        if (widthof(T) != other.width())
+            throw std::logic_error("Invalid width");
+
+        // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
+        return operator=(reinterpret_cast<expression&&>(other));
+    }
+    expression<>& expression<>::operator=(expression&&) noexcept = default;
+
+    bool expression<>::conclusive() const noexcept
+    {
+        return resource_context::apply(Z3_is_numeral_ast, base());
+    }
+
+    std::size_t expression<>::width() const noexcept
+    {
+        return resource_context::apply(Z3_get_bv_sort_size, expression_sort(base()));
+    }
+
+    _Z3_ast* expression<>::base() const noexcept
+    {
+        return base_->value();
+    }
+    void expression<>::base(_Z3_ast* const resource) noexcept
+    {
+        base_->value(resource);
+    }
+
+    template <integral_expression_typename T>
+    template <typename>
+    expression<T>::expression(_Z3_ast* const base) noexcept :
+        expression<>(base)
+    { }
+
+    template <integral_expression_typename T>
     expression<T>::expression(T const value) noexcept :
         expression(resource_context::apply(Z3_mk_unsigned_int64, static_cast<std::uint64_t>(value), expression_sort::instance<widthof(T)>()))
     { }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T>::expression(std::string const& symbol) :
         expression(resource_context::apply(Z3_mk_const, resource_context::apply(Z3_mk_string_symbol, symbol.c_str()), expression_sort::instance<widthof(T)>()))
     {
@@ -23,13 +112,13 @@ namespace vra
             throw std::invalid_argument("Invalid symbol");
     }
 
-    template <expression_typename T>
+    template <integral_expression_typename T>
     template <integral_expression_typename U>
         requires (widthof(U) == widthof(T))
     expression<T>::expression(expression<U> const& other) noexcept :
         expression(other.base())
     { }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     template <integral_expression_typename U>
         requires (widthof(U) > widthof(T))
     expression<T>::expression(expression<U> const& other) noexcept :
@@ -37,7 +126,7 @@ namespace vra
     {
         update(Z3_simplify);
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     template <integral_expression_typename U>
         requires (widthof(U) < widthof(T))
     expression<T>::expression(expression<U> const& other) noexcept :
@@ -46,7 +135,7 @@ namespace vra
         update(Z3_simplify);
     }
 
-    template <expression_typename T>
+    template <integral_expression_typename T>
     template <integral_expression_typename U>
         requires (widthof(U) <= widthof(T))
     expression<T> expression<T>::join(std::array<expression<U>, widthof(T) / widthof(U)> const& parts) noexcept
@@ -63,7 +152,7 @@ namespace vra
             return result;
         }
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     template <integral_expression_typename U, std::size_t POSITION>
         requires (widthof(T) >= widthof(U) * (POSITION + 1))
     expression<U> expression<T>::extract() const noexcept
@@ -74,7 +163,7 @@ namespace vra
         return result;
     }
 
-    template <expression_typename T>
+    template <integral_expression_typename T>
     T expression<T>::evaluate() const
     {
         if (std::uint64_t value { }; resource_context::apply(Z3_get_numeral_uint64, base(), &value))
@@ -83,7 +172,23 @@ namespace vra
         throw std::logic_error("Inconclusive evaluation");
     }
 
-    template <expression_typename T>
+    template <integral_expression_typename T>
+    template <integral_expression_typename U>
+    expression<U> expression<T>::dereference() const noexcept
+    {
+        static auto const indirection = expression_operation::create<widthof(U), widthof(T)>("deref" + std::to_string(widthof(U)));
+
+        auto* const resource = base();
+
+        return expression<U>(resource_context::apply(Z3_mk_app, indirection, 1, &resource));
+    }
+
+    template <integral_expression_typename T>
+    static expression<T> const zero(static_cast<T>(0));
+    template <integral_expression_typename T>
+    static expression<T> const one(static_cast<T>(1));
+
+    template <integral_expression_typename T>
     expression<bool> expression<T>::equal(expression const& other) const noexcept
     {
         auto result = derive<bool>(Z3_mk_eq, other);
@@ -92,7 +197,7 @@ namespace vra
 
         return result;
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<bool> expression<T>::less(expression const& other) const noexcept
     {
         auto result = derive<bool>(std::signed_integral<T> ? Z3_mk_bvslt : Z3_mk_bvult, other);
@@ -102,18 +207,18 @@ namespace vra
         return result;
     }
 
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T>& expression<T>::operator++() noexcept
     {
         return operator+=(one<T>);
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T>& expression<T>::operator--() noexcept
     {
         return operator-=(one<T>);
     }
 
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T>& expression<T>::operator +=(expression const& other) noexcept
     {
         update(Z3_mk_bvadd, other);
@@ -121,7 +226,7 @@ namespace vra
 
         return *this;
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T>& expression<T>::operator -=(expression const& other) noexcept
     {
         update(Z3_mk_bvsub, other);
@@ -129,7 +234,7 @@ namespace vra
 
         return *this;
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T>& expression<T>::operator *=(expression const& other) noexcept
     {
         update(Z3_mk_bvmul, other);
@@ -137,7 +242,7 @@ namespace vra
 
         return *this;
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T>& expression<T>::operator /=(expression const& other) noexcept
     {
         update(std::signed_integral<T> ? Z3_mk_bvsdiv : Z3_mk_bvudiv, other);
@@ -145,7 +250,7 @@ namespace vra
 
         return *this;
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T>& expression<T>::operator %=(expression const& other) noexcept
     {
         update(std::signed_integral<T> ? Z3_mk_bvsrem : Z3_mk_bvurem, other);
@@ -153,7 +258,7 @@ namespace vra
 
         return *this;
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T>& expression<T>::operator &=(expression const& other) noexcept
     {
         update(Z3_mk_bvand, other);
@@ -161,7 +266,7 @@ namespace vra
 
         return *this;
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T>& expression<T>::operator |=(expression const& other) noexcept
     {
         update(Z3_mk_bvor, other);
@@ -169,7 +274,7 @@ namespace vra
 
         return *this;
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T>& expression<T>::operator ^=(expression const& other) noexcept
     {
         update(Z3_mk_bvxor, other);
@@ -177,7 +282,7 @@ namespace vra
 
         return *this;
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T>& expression<T>::operator<<=(expression const& other) noexcept
     {
         update(Z3_mk_bvshl, other);
@@ -185,7 +290,7 @@ namespace vra
 
         return *this;
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T>& expression<T>::operator>>=(expression const& other) noexcept
     {
         update(Z3_mk_bvlshr, other);
@@ -194,69 +299,69 @@ namespace vra
         return *this;
     }
 
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T> expression<T>::operator-() const noexcept
     {
         return derive(Z3_mk_bvneg);
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T> expression<T>::operator~() const noexcept
     {
         return derive(Z3_mk_bvnot);
     }
 
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T> expression<T>::operator +(expression const& other) const noexcept
     {
         return derive(Z3_mk_bvadd, other);
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T> expression<T>::operator -(expression const& other) const noexcept
     {
         return derive(Z3_mk_bvsub, other);
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T> expression<T>::operator *(expression const& other) const noexcept
     {
         return derive(Z3_mk_bvmul, other);
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T> expression<T>::operator /(expression const& other) const noexcept
     {
         return derive(std::signed_integral<T> ? Z3_mk_bvsdiv : Z3_mk_bvudiv, other);
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T> expression<T>::operator %(expression const& other) const noexcept
     {
         return derive(std::signed_integral<T> ? Z3_mk_bvsrem : Z3_mk_bvurem, other);
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T> expression<T>::operator &(expression const& other) const noexcept
     {
         return derive(Z3_mk_bvand, other);
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T> expression<T>::operator |(expression const& other) const noexcept
     {
         return derive(Z3_mk_bvor, other);
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T> expression<T>::operator ^(expression const& other) const noexcept
     {
         return derive(Z3_mk_bvxor, other);
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T> expression<T>::operator<<(expression const& other) const noexcept
     {
         return derive(Z3_mk_bvshl, other);
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     expression<T> expression<T>::operator>>(expression const& other) const noexcept
     {
         return derive(Z3_mk_bvlshr, other);
     }
 
-    template <expression_typename T>
+    template <integral_expression_typename T>
     template <integral_expression_typename U, typename Applicator>
     expression<U> expression<T>::derive(Applicator&& applicator) const noexcept
     {
@@ -265,7 +370,7 @@ namespace vra
 
         return derived;
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     template <integral_expression_typename U, typename Applicator>
     expression<U> expression<T>::derive(Applicator&& applicator, expression const& other) const noexcept
     {
@@ -275,26 +380,26 @@ namespace vra
         return derived;
     }
 
-    template <expression_typename T>
+    template <integral_expression_typename T>
     template <typename Applicator>
     void expression<T>::update(Applicator&& applicator) noexcept
     {
         base(resource_context::apply(std::forward<Applicator>(applicator), base()));
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     template <typename Applicator>
     void expression<T>::update(Applicator&& applicator, expression const& other) noexcept
     {
         base(resource_context::apply(std::forward<Applicator>(applicator), base(), other.base()));
     }
-    template <expression_typename T>
+    template <integral_expression_typename T>
     template <typename Applicator>
     void expression<T>::update(Applicator&& applicator, expression const& other_1, expression const& other_2) noexcept
     {
         base(resource_context::apply(std::forward<Applicator>(applicator), base(), other_1.base(), other_2.base()));
     }
 
-    template <expression_typename T>
+    template <integral_expression_typename T>
     template <std::size_t INDEX, integral_expression_typename U>
         requires (widthof(U) <= widthof(T))
     expression<T> expression<T>::join(std::array<expression<U>, widthof(T) / widthof(U)> const& parts) noexcept
@@ -308,54 +413,21 @@ namespace vra
             return expression(resource_context::apply(Z3_mk_concat, join<INDEX + 1>(parts).base(), std::get<INDEX>(parts).base()));
         }
     }
-
-    template <integral_expression_typename T>
-    expression<>::expression(expression<T> const& other) noexcept :
-        // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
-        expression(reinterpret_cast<expression const&>(other))
-    {
-        static_assert(sizeof(expression<T>) == sizeof(expression));
-    }
-    template <integral_expression_typename T>
-    expression<>& expression<>::operator=(expression<T> const& other)
-    {
-        static_assert(sizeof(expression<T>) == sizeof(expression));
-
-        if (widthof(T) != other.width())
-            throw std::logic_error("Invalid width");
-
-        // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
-        return operator=(reinterpret_cast<expression const&>(other));
-    }
-
-    template <integral_expression_typename T>
-    expression<>::expression(expression<T>&& other) noexcept :
-        // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
-        expression(reinterpret_cast<expression&&>(other))
-    {
-        static_assert(sizeof(expression<T>) == sizeof(expression));
-    }
-    template <integral_expression_typename T>
-    expression<>& expression<>::operator=(expression<T>&& other)
-    {
-        static_assert(sizeof(expression<T>) == sizeof(expression));
-
-        if (widthof(T) != other.width())
-            throw std::logic_error("Invalid width");
-
-        // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
-        return operator=(reinterpret_cast<expression&&>(other));
-    }
 }
 
 namespace std // NOLINT [cert-dcl58-cpp]
 {
-    template <vra::expression_typename T>
-    std::size_t hash<vra::expression<T>>::operator()(vra::expression<T> const& value) const noexcept
+    std::size_t hash<vra::expression<>>::operator()(vra::expression<> const& expression) const noexcept
     {
-        static hash<vra::expression_base> constexpr base_hasher;
+        return vra::resource_context::apply(Z3_get_ast_hash, expression.base());
+    }
 
-        return base_hasher(value);
+    template <vra::integral_expression_typename T>
+    std::size_t hash<vra::expression<T>>::operator()(vra::expression<T> const& expression) const noexcept
+    {
+        static hash<vra::expression<>> constexpr base_hasher;
+
+        return base_hasher(expression);
     }
 }
 
@@ -366,18 +438,22 @@ namespace std // NOLINT [cert-dcl58-cpp]
 #define INSTANTIATE_EXPRESSION_SQUARE(T, U)\
     IF_NOT_EQUAL(            T, U, template                    vra::EXPRESSION(T)::expression(     EXPRESSION(U) const&))                          ;\
     IF_TYPE_WIDTH_DIVIDABLE( T, U, template vra::EXPRESSION(T) vra::EXPRESSION(T)::join(std::array<EXPRESSION(U), TYPE_WIDTH_DIVIDE(T, U)> const&));\
+    template                                vra::EXPRESSION(U) vra::EXPRESSION(T)::dereference() const;\
     LOOP_TYPE_WIDTH_DIVIDE_2(T, U, INSTANTIATE_EXPRESSION_SQUARE_INDEXED, T, U);
 #define INSTANTIATE_EXPRESSION(T)\
+    template bool            vra::operator==(EXPRESSION(T) const&, EXPRESSION(T) const&);\
+    template std::ostream&   vra::operator<<(std::ostream       &, EXPRESSION(T) const&);\
     template class           vra::EXPRESSION(T) ;\
     template class std::hash<vra::EXPRESSION(T)>;\
     LOOP_TYPES_1(INSTANTIATE_EXPRESSION_SQUARE, T);
-LOOP_TYPES_0(INSTANTIATE_EXPRESSION)
+LOOP_TYPES_0(INSTANTIATE_EXPRESSION);
+
+template bool          vra::operator==(expression<> const&, expression<> const&);
+template std::ostream& vra::operator<<(std::ostream      &, expression<> const&);
 
 #define INSTANTIATE_ANONYMOUS_EXPRESSION(T)\
     template                    vra::expression<>::expression(EXPRESSION(T) const&);\
     template vra::expression<>& vra::expression<>::operator=( EXPRESSION(T) const&);\
     template                    vra::expression<>::expression(EXPRESSION(T)&&);\
     template vra::expression<>& vra::expression<>::operator=( EXPRESSION(T)&&);
-LOOP_TYPES_0(INSTANTIATE_ANONYMOUS_EXPRESSION)
-
-template class std::hash<vra::expression<>>;
+LOOP_TYPES_0(INSTANTIATE_ANONYMOUS_EXPRESSION);
