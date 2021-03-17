@@ -75,14 +75,60 @@ namespace vra
     }
     expression<>& expression<>::operator=(expression&&) noexcept = default;
 
+    template <integral_expression_typename T>
+    expression<T> const& expression<>::as() const
+    {
+        static_assert(sizeof(expression<T>) == sizeof(expression));
+
+        if (widthof(T) != width())
+            throw std::logic_error("Invalid width");
+
+        // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
+        return reinterpret_cast<expression<T> const&>(*this);
+    }
+    template <integral_expression_typename T>
+    expression<T>& expression<>::as()
+    {
+        static_assert(sizeof(expression<T>) == sizeof(expression));
+
+        if (widthof(T) != width())
+            throw std::logic_error("Invalid width");
+
+        // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
+        return reinterpret_cast<expression<T>&>(*this);
+    }
+
     bool expression<>::conclusive() const noexcept
     {
         return resource_context::apply(Z3_is_numeral_ast, base());
     }
 
-    std::size_t expression<>::width() const noexcept
+    void expression<>::substitute(expression const& key, expression const& value)
     {
-        return resource_context::apply(Z3_get_bv_sort_size, expression_sort(base()));
+        if (key.width() != value.width())
+            throw std::logic_error("Width mismatch");
+
+        auto* const key_resource = key.base();
+        auto* const value_resource = value.base();
+
+        base(resource_context::apply(Z3_substitute, base(), 1, &key_resource, &value_resource));
+        base(resource_context::apply(Z3_simplify, base()));
+    }
+    void expression<>::substitute(std::string const& key_symbol, expression const& value)
+    {
+        expression const key(
+            resource_context::apply(
+                Z3_mk_const,
+                resource_context::apply(
+                    Z3_mk_string_symbol,
+                    key_symbol.c_str()),
+                expression_sort(value.base())));
+
+        auto* const key_resource = key.base();
+        auto* const value_resource = value.base();
+
+        base(resource_context::apply(Z3_substitute, base(), 1, &key_resource, &value_resource));
+        base(resource_context::apply(Z3_simplify, base()));
     }
 
     _Z3_ast* expression<>::base() const noexcept
@@ -92,6 +138,11 @@ namespace vra
     void expression<>::base(_Z3_ast* const resource) noexcept
     {
         base_->value(resource);
+    }
+
+    std::size_t expression<>::width() const noexcept
+    {
+        return resource_context::apply(Z3_get_bv_sort_size, expression_sort(base()));
     }
 
     template <integral_expression_typename T>
@@ -140,13 +191,17 @@ namespace vra
         requires (widthof(U) <= widthof(T))
     expression<T> expression<T>::join(std::array<expression<U>, widthof(T) / widthof(U)> const& parts) noexcept
     {
-        if constexpr (widthof(T) == widthof(U))
+        if constexpr (widthof(U) == widthof(T))
         {
             return expression<T>(std::get<0>(parts));
         }
         else
         {
-            expression<T> result(join<0>(parts));
+            auto result = concatenate<T, widthof(T) / widthof(U)>(
+                [&parts]<std::size_t INDEX>()
+                {
+                    return std::get<INDEX>(parts);
+                });
             result.update(Z3_simplify);
 
             return result;
@@ -174,13 +229,31 @@ namespace vra
 
     template <integral_expression_typename T>
     template <integral_expression_typename U>
+        requires (widthof(U) >= widthof(std::byte))
     expression<U> expression<T>::dereference() const noexcept
     {
-        static auto const indirection = expression_operation::create<widthof(U), widthof(T)>("deref" + std::to_string(widthof(U)));
+        static auto const indirection = expression_operation::create<widthof(std::byte), widthof(T)>("deref");
 
-        auto* const resource = base();
+        if constexpr (widthof(U) == widthof(std::byte))
+        {
+            auto* const resource = base();
 
-        return expression<U>(resource_context::apply(Z3_mk_app, indirection, 1, &resource));
+            return expression<U>(resource_context::apply(Z3_mk_app, indirection, 1, &resource));
+        }
+        else
+        {
+            auto result = concatenate<U, widthof(U) / widthof(std::byte)>(
+                [this]<std::size_t INDEX>()
+                {
+                    auto const advanced = operator+(expression(static_cast<T>(INDEX)));
+                    auto* const advanced_resource = advanced.base();
+
+                    return expression<std::byte>(resource_context::apply(Z3_mk_app, indirection, 1, &advanced_resource));
+                });
+            result.update(Z3_simplify);
+
+            return result;
+        }
     }
 
     template <integral_expression_typename T>
@@ -400,17 +473,25 @@ namespace vra
     }
 
     template <integral_expression_typename T>
-    template <std::size_t INDEX, integral_expression_typename U>
-        requires (widthof(U) <= widthof(T))
-    expression<T> expression<T>::join(std::array<expression<U>, widthof(T) / widthof(U)> const& parts) noexcept
+    template <integral_expression_typename U, std::size_t COUNT, typename Generator>
+        requires (COUNT > 1)
+    expression<U> expression<T>::concatenate(Generator const& generator) noexcept
     {
-        if constexpr (INDEX == widthof(T) / widthof(U) - 2)
+        auto const& current = generator.template operator()<COUNT - 1>();
+
+        if constexpr (COUNT > 2)
         {
-            return expression(resource_context::apply(Z3_mk_concat, std::get<INDEX + 1>(parts).base(), std::get<INDEX>(parts).base()));
+            // Recurse
+            auto const previous = concatenate<U, COUNT - 1>(generator);
+
+            return expression<U>(resource_context::apply(Z3_mk_concat, current.base(), previous.base()));
         }
         else
         {
-            return expression(resource_context::apply(Z3_mk_concat, join<INDEX + 1>(parts).base(), std::get<INDEX>(parts).base()));
+            // Finalize
+            auto const& previous = generator.template operator()<0>();
+
+            return expression<U>(resource_context::apply(Z3_mk_concat, current.base(), previous.base()));
         }
     }
 }
@@ -436,14 +517,14 @@ namespace std // NOLINT [cert-dcl58-cpp]
 #define INSTANTIATE_EXPRESSION_SQUARE_INDEXED(T, U, index)\
     template vra::EXPRESSION(U) vra::EXPRESSION(T)::extract<TYPE(U), index>() const;
 #define INSTANTIATE_EXPRESSION_SQUARE(T, U)\
-    IF_NOT_EQUAL(            T, U, template                    vra::EXPRESSION(T)::expression(     EXPRESSION(U) const&))                          ;\
+    IF_NOT_EQUAL(            T, U, template                    vra::EXPRESSION(T)::expression(     EXPRESSION(U) const&));\
     IF_TYPE_WIDTH_DIVIDABLE( T, U, template vra::EXPRESSION(T) vra::EXPRESSION(T)::join(std::array<EXPRESSION(U), TYPE_WIDTH_DIVIDE(T, U)> const&));\
-    template                                vra::EXPRESSION(U) vra::EXPRESSION(T)::dereference() const;\
+    IF_NOT_EQUAL(            U, 0, template vra::EXPRESSION(U) vra::EXPRESSION(T)::dereference() const);\
     LOOP_TYPE_WIDTH_DIVIDE_2(T, U, INSTANTIATE_EXPRESSION_SQUARE_INDEXED, T, U);
 #define INSTANTIATE_EXPRESSION(T)\
     template bool            vra::operator==(EXPRESSION(T) const&, EXPRESSION(T) const&);\
     template std::ostream&   vra::operator<<(std::ostream       &, EXPRESSION(T) const&);\
-    template class           vra::EXPRESSION(T) ;\
+    template class           vra::EXPRESSION(T);\
     template class std::hash<vra::EXPRESSION(T)>;\
     LOOP_TYPES_1(INSTANTIATE_EXPRESSION_SQUARE, T);
 LOOP_TYPES_0(INSTANTIATE_EXPRESSION);
@@ -452,8 +533,10 @@ template bool          vra::operator==(expression<> const&, expression<> const&)
 template std::ostream& vra::operator<<(std::ostream      &, expression<> const&);
 
 #define INSTANTIATE_ANONYMOUS_EXPRESSION(T)\
-    template                    vra::expression<>::expression(EXPRESSION(T) const&);\
-    template vra::expression<>& vra::expression<>::operator=( EXPRESSION(T) const&);\
-    template                    vra::expression<>::expression(EXPRESSION(T)&&);\
-    template vra::expression<>& vra::expression<>::operator=( EXPRESSION(T)&&);
+    template                           vra::expression<>::expression(EXPRESSION(T) const&);\
+    template vra::expression< >      & vra::expression<>::operator=( EXPRESSION(T) const&);\
+    template                           vra::expression<>::expression(EXPRESSION(T)&&);\
+    template vra::expression< >      & vra::expression<>::operator=( EXPRESSION(T)&&);\
+    template vra::EXPRESSION(T) const& vra::expression<>::as() const;\
+    template vra::EXPRESSION(T)      & vra::expression<>::as();
 LOOP_TYPES_0(INSTANTIATE_ANONYMOUS_EXPRESSION);

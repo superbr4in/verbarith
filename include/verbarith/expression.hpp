@@ -59,15 +59,24 @@ namespace vra
         expression& operator=(expression<T>&&);
         expression& operator=(expression&&) noexcept;
 
+        template <integral_expression_typename T>
+        [[nodiscard]] expression<T> const& as() const;
+        template <integral_expression_typename T>
+        expression<T>& as();
+
         [[nodiscard]] bool conclusive() const noexcept;
 
-        [[nodiscard]] std::size_t width() const noexcept;
+        void substitute(expression const& key, expression const& value);
+        void substitute(std::string const& key_symbol, expression const& value);
 
     private:
 
         [[nodiscard]] _Z3_ast* base() const noexcept;
         void base(_Z3_ast*) noexcept;
+
+        [[nodiscard]] std::size_t width() const noexcept;
     };
+
     template <integral_expression_typename T>
     class expression<T> : public expression<>
     {
@@ -105,6 +114,7 @@ namespace vra
         [[nodiscard]] T evaluate() const;
 
         template <integral_expression_typename U>
+            requires (widthof(U) >= widthof(std::byte))
         [[nodiscard]] expression<U> dereference() const noexcept;
 
         [[nodiscard]] expression<bool> equal(expression const&) const noexcept;
@@ -152,9 +162,9 @@ namespace vra
         template <typename Applicator>
         void update(Applicator&&, expression const&, expression const&) noexcept;
 
-        template <std::size_t INDEX, integral_expression_typename U>
-            requires (widthof(U) <= widthof(T))
-        [[nodiscard]] static expression join(std::array<expression<U>, widthof(T) / widthof(U)> const&) noexcept;
+        template <integral_expression_typename U, std::size_t COUNT, typename Generator>
+            requires (COUNT > 1)
+        [[nodiscard]] static expression<U> concatenate(Generator const&) noexcept;
     };
 
     template <typename T>
@@ -168,6 +178,7 @@ namespace std
     {
         [[nodiscard]] std::size_t operator()(vra::expression<> const&) const noexcept;
     };
+
     template <vra::integral_expression_typename T>
     struct hash<vra::expression<T>>
     {
