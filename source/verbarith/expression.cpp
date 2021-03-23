@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <regex>
 
 #include <verbarith/expression.hpp>
 #include <verbarith/expression_operation.ipp>
@@ -14,7 +15,10 @@ namespace vra
     template <typename T>
     std::ostream& operator<<(std::ostream& stream, expression<T> const& expression) noexcept
     {
-        stream << resource_context::apply(Z3_ast_to_string, expression.base());
+        std::string const representation(resource_context::apply(Z3_ast_to_string, expression.base()));
+
+        // Remove line breaks and indent
+        stream << std::regex_replace(representation, std::regex("\\n\\s*"), " ");
 
         return stream;
     }
