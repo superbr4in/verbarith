@@ -115,6 +115,18 @@ namespace vra
         return resource_context::apply(Z3_is_numeral_ast, base());
     }
 
+    template <integral_expression_typename T>
+    T expression<>::evaluate() const
+    {
+        if (widthof(T) != width())
+            throw std::logic_error("Invalid width");
+
+        if (std::uint64_t value { }; resource_context::apply(Z3_get_numeral_uint64, base(), &value))
+            return static_cast<T>(value);
+
+        throw std::logic_error("Inconclusive evaluation");
+    }
+
     std::unordered_set<std::string> expression<>::dependencies() const noexcept
     {
         // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
@@ -600,5 +612,6 @@ template std::ostream& vra::operator<<(std::ostream      &, expression<> const&)
     template                           vra::expression<>::expression(EXPRESSION(T)&&);\
     template vra::expression< >      & vra::expression<>::operator=( EXPRESSION(T)&&);\
     template vra::EXPRESSION(T) const& vra::expression<>::as_expression() const;\
-    template vra::EXPRESSION(T)      & vra::expression<>::as_expression();
+    template vra::EXPRESSION(T)      & vra::expression<>::as_expression();\
+    template            TYPE(T)        vra::expression<>::evaluate() const;
 LOOP_TYPES_0(INSTANTIATE_ANONYMOUS_EXPRESSION);

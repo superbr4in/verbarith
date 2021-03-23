@@ -67,6 +67,9 @@ namespace vra
 
         [[nodiscard]] bool conclusive() const noexcept;
 
+        template <integral_expression_typename T>
+        [[nodiscard]] T evaluate() const;
+
         [[nodiscard]] std::unordered_set<std::string> dependencies() const noexcept;
         [[nodiscard]] std::unordered_set<expression> dependencies_indirect() const noexcept;
 
