@@ -135,6 +135,75 @@ TEST_CASE("Expression: Conclusiveness")
     CHECK(expression<unsigned char>(27).conclusive());
     CHECK_FALSE(expression<unsigned char>("X").conclusive());
 }
+
+TEST_CASE("Expression: Dependencies")
+{
+    expression<unsigned char> const value_1(27);
+    auto const value_1_dependencies = value_1.dependencies();
+    REQUIRE(0 == value_1_dependencies.size());
+
+    std::string const value_2_symbol("X");
+
+    expression<unsigned char> const value_2(value_2_symbol);
+    auto const value_2_dependencies = value_2.dependencies();
+    REQUIRE(1 == value_2_dependencies.size());
+    REQUIRE(value_2_symbol == *value_2_dependencies.begin());
+
+    auto const value_3 = value_1 + value_2;
+    auto const value_3_dependencies = value_3.dependencies();
+    REQUIRE(1 == value_3_dependencies.size());
+    REQUIRE(value_2_symbol == *value_3_dependencies.begin());
+
+    auto const value_4 = value_3 * value_2;
+    auto const value_4_dependencies = value_4.dependencies();
+    REQUIRE(1 == value_4_dependencies.size());
+    REQUIRE(value_2_symbol == *value_4_dependencies.begin());
+
+    auto const value_5 = value_1 + value_2.dereference<unsigned char>();
+    auto const value_5_dependencies = value_5.dependencies();
+    REQUIRE(1 == value_5_dependencies.size());
+    REQUIRE(value_2_symbol == *value_5_dependencies.begin());
+
+    std::string const value_6_symbol("Y");
+
+    expression<unsigned char> const value_6(value_6_symbol);
+
+    auto const value_7 = value_4 - value_6;
+    auto const value_7_dependencies = value_7.dependencies();
+    REQUIRE(2 == value_7_dependencies.size());
+    REQUIRE((
+        (value_2_symbol == *value_7_dependencies.begin() && value_6_symbol == *std::next(value_7_dependencies.begin())) ||
+        (value_6_symbol == *value_7_dependencies.begin() && value_2_symbol == *std::next(value_7_dependencies.begin()))));
+}
+TEST_CASE("Expression: Dependencies (indirect)")
+{
+    expression<unsigned char> const value_1(27);
+    auto const value_1_dependencies = value_1.dependencies_indirect();
+    REQUIRE(0 == value_1_dependencies.size());
+
+    expression<unsigned char> const value_2("X");
+    auto const value_2_dependencies = value_2.dependencies_indirect();
+    REQUIRE(0 == value_2_dependencies.size());
+
+    auto const value_3 = -value_2;
+    auto const value_3_dependencies = value_3.dependencies_indirect();
+    REQUIRE(0 == value_3_dependencies.size());
+
+    auto const value_4 = value_3 * value_2;
+    auto const value_4_dependencies = value_4.dependencies_indirect();
+    REQUIRE(0 == value_4_dependencies.size());
+
+    auto const value_5 = value_1 + value_2.dereference<unsigned char>();
+    auto const value_5_dependencies = value_5.dependencies_indirect();
+    REQUIRE(1 == value_5_dependencies.size());
+    REQUIRE(expression<>(value_2) == *value_5_dependencies.begin());
+
+    auto const value_6 = value_1.dereference<unsigned char>();
+    auto const value_6_dependencies = value_6.dependencies_indirect();
+    REQUIRE(1 == value_6_dependencies.size());
+    REQUIRE(expression<>(value_1) == *value_6_dependencies.begin());
+}
+
 TEST_CASE("Expression: Evaluation")
 {
     CHECK(expression<unsigned char>(0).evaluate() == 0);

@@ -2,7 +2,7 @@
 
 #include <z3.h>
 
-#include <verbarith/resource_handler.hpp>
+#include <verbarith/expression_sort.hpp>
 
 namespace vra
 {
@@ -27,8 +27,13 @@ namespace vra
         // NOLINTNEXTLINE [hicpp-explicit-conversions]
         [[nodiscard]] operator _Z3_func_decl*() const noexcept;
 
+        [[nodiscard]] _Z3_symbol* symbol() const noexcept;
+
         template <std::size_t RANGE_WIDTH, std::size_t... DOMAIN_WIDTHS>
             requires (RANGE_WIDTH > 0) && (sizeof...(DOMAIN_WIDTHS) > 0) && ((DOMAIN_WIDTHS > 0) &&...)
-        [[nodiscard]] static expression_operation create(std::string const&) noexcept;
+        [[nodiscard]] static expression_operation create(_Z3_symbol*) noexcept;
+        template <std::size_t RANGE_WIDTH, std::same_as<expression_sort>... DOMAIN_SORTS>
+            requires (RANGE_WIDTH > 0) && (sizeof...(DOMAIN_SORTS) > 0)
+        [[nodiscard]] static expression_operation create(_Z3_symbol*, DOMAIN_SORTS const&...) noexcept;
     };
 }

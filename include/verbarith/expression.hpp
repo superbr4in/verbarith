@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <unordered_set>
 
 #include <verbarith/width.hpp>
 
@@ -60,14 +61,17 @@ namespace vra
         expression& operator=(expression&&) noexcept;
 
         template <integral_expression_typename T>
-        [[nodiscard]] expression<T> const& as() const;
+        [[nodiscard]] expression<T> const& as_expression() const;
         template <integral_expression_typename T>
-        expression<T>& as();
+        expression<T>& as_expression();
 
         [[nodiscard]] bool conclusive() const noexcept;
 
-        void substitute(expression const& key, expression const& value);
-        void substitute(std::string const& key_symbol, expression const& value);
+        [[nodiscard]] std::unordered_set<std::string> dependencies() const noexcept;
+        [[nodiscard]] std::unordered_set<expression> dependencies_indirect() const noexcept;
+
+        void substitute(std::string const& key_symbol, expression const& value) noexcept;
+        void substitute_indirect(expression const& key_pointer, expression<std::byte> const& value) noexcept;
 
     private:
 

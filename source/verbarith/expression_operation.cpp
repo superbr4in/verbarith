@@ -16,4 +16,9 @@ namespace vra
     {
         return base_.value();
     }
+
+    _Z3_symbol* expression_operation::symbol() const noexcept
+    {
+        return resource_context::apply(Z3_get_decl_name, base_.value());
+    }
 }

@@ -7,6 +7,14 @@
 
 namespace vra
 {
+    // NOLINTNEXTLINE [cppcoreguidelines-avoid-non-const-global-variables]
+    static _Z3_symbol* const indirection_symbol = resource_context::apply(Z3_mk_string_symbol, "deref");
+
+    template <integral_expression_typename T>
+    static expression<T> const zero(static_cast<T>(0));
+    template <integral_expression_typename T>
+    static expression<T> const one(static_cast<T>(1));
+
     template <typename T>
     bool operator==(expression<T> const& expression_1, expression<T> const& expression_2) noexcept
     {
@@ -80,7 +88,7 @@ namespace vra
     expression<>& expression<>::operator=(expression&&) noexcept = default;
 
     template <integral_expression_typename T>
-    expression<T> const& expression<>::as() const
+    expression<T> const& expression<>::as_expression() const
     {
         static_assert(sizeof(expression<T>) == sizeof(expression));
 
@@ -91,7 +99,7 @@ namespace vra
         return reinterpret_cast<expression<T> const&>(*this);
     }
     template <integral_expression_typename T>
-    expression<T>& expression<>::as()
+    expression<T>& expression<>::as_expression()
     {
         static_assert(sizeof(expression<T>) == sizeof(expression));
 
@@ -107,18 +115,54 @@ namespace vra
         return resource_context::apply(Z3_is_numeral_ast, base());
     }
 
-    void expression<>::substitute(expression const& key, expression const& value)
+    std::unordered_set<std::string> expression<>::dependencies() const noexcept
     {
-        if (key.width() != value.width())
-            throw std::logic_error("Width mismatch");
+        // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
+        auto* const base_application = reinterpret_cast<_Z3_app*>(base());
 
-        auto* const key_resource = key.base();
-        auto* const value_resource = value.base();
+        auto const argument_count = resource_context::apply(Z3_get_app_num_args, base_application);
+        if (argument_count == 0 && !conclusive())
+        {
+            // Dependency by itself
+            return { resource_context::apply(Z3_get_symbol_string, expression_operation(base()).symbol()) };
+        }
 
-        base(resource_context::apply(Z3_substitute, base(), 1, &key_resource, &value_resource));
-        base(resource_context::apply(Z3_simplify, base()));
+        std::unordered_set<std::string> dependencies;
+        for (std::size_t argument_index = 0; argument_index < argument_count; ++argument_index)
+        {
+            expression const child(resource_context::apply(Z3_get_app_arg, base_application, argument_index));
+
+            // Recurse
+            dependencies.merge(child.dependencies());
+        }
+
+        return dependencies;
     }
-    void expression<>::substitute(std::string const& key_symbol, expression const& value)
+    std::unordered_set<expression<>> expression<>::dependencies_indirect() const noexcept
+    {
+        // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
+        auto* const base_application = reinterpret_cast<_Z3_app*>(base());
+
+        auto const argument_count = resource_context::apply(Z3_get_app_num_args, base_application);
+        if (argument_count == 1 && expression_operation(base()).symbol() == indirection_symbol)
+        {
+            // Dependency by itself
+            return { expression(resource_context::apply(Z3_get_app_arg, base_application, 0)) };
+        }
+
+        std::unordered_set<expression> dependencies;
+        for (std::size_t argument_index = 0; argument_index < argument_count; ++argument_index)
+        {
+            expression const child(resource_context::apply(Z3_get_app_arg, base_application, argument_index));
+
+            // Recurse
+            dependencies.merge(child.dependencies_indirect());
+        }
+
+        return dependencies;
+    }
+
+    void expression<>::substitute(std::string const& key_symbol, expression const& value) noexcept
     {
         expression const key(
             resource_context::apply(
@@ -131,6 +175,25 @@ namespace vra
         auto* const key_resource = key.base();
         auto* const value_resource = value.base();
 
+        // TODO: update()
+        base(resource_context::apply(Z3_substitute, base(), 1, &key_resource, &value_resource));
+        base(resource_context::apply(Z3_simplify, base()));
+    }
+    void expression<>::substitute_indirect(expression const& key_pointer, expression<std::byte> const& value) noexcept
+    {
+        auto* const key_pointer_resource = key_pointer.base();
+
+        expression<std::byte> const key(
+            resource_context::apply(
+                Z3_mk_app,
+                expression_operation::create<widthof(std::byte)>(indirection_symbol, expression_sort(key_pointer.base())),
+                1,
+                &key_pointer_resource));
+
+        auto* const key_resource = key.base();
+        auto* const value_resource = value.base();
+
+        // TODO: update()
         base(resource_context::apply(Z3_substitute, base(), 1, &key_resource, &value_resource));
         base(resource_context::apply(Z3_simplify, base()));
     }
@@ -236,7 +299,7 @@ namespace vra
         requires (widthof(U) >= widthof(std::byte))
     expression<U> expression<T>::dereference() const noexcept
     {
-        static auto const indirection = expression_operation::create<widthof(std::byte), widthof(T)>("deref");
+        static auto const indirection = expression_operation::create<widthof(std::byte), widthof(T)>(indirection_symbol);
 
         if constexpr (widthof(U) == widthof(std::byte))
         {
@@ -259,11 +322,6 @@ namespace vra
             return result;
         }
     }
-
-    template <integral_expression_typename T>
-    static expression<T> const zero(static_cast<T>(0));
-    template <integral_expression_typename T>
-    static expression<T> const one(static_cast<T>(1));
 
     template <integral_expression_typename T>
     expression<bool> expression<T>::equal(expression const& other) const noexcept
@@ -541,6 +599,6 @@ template std::ostream& vra::operator<<(std::ostream      &, expression<> const&)
     template vra::expression< >      & vra::expression<>::operator=( EXPRESSION(T) const&);\
     template                           vra::expression<>::expression(EXPRESSION(T)&&);\
     template vra::expression< >      & vra::expression<>::operator=( EXPRESSION(T)&&);\
-    template vra::EXPRESSION(T) const& vra::expression<>::as() const;\
-    template vra::EXPRESSION(T)      & vra::expression<>::as();
+    template vra::EXPRESSION(T) const& vra::expression<>::as_expression() const;\
+    template vra::EXPRESSION(T)      & vra::expression<>::as_expression();
 LOOP_TYPES_0(INSTANTIATE_ANONYMOUS_EXPRESSION);
