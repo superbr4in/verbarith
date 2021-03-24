@@ -98,8 +98,10 @@ namespace vra
 
     public:
 
-        explicit expression(T value) noexcept;
-        explicit expression(std::string const& symbol);
+        // NOLINTNEXTLINE [hicpp-explicit-conversions]
+        expression(T value) noexcept;
+        // NOLINTNEXTLINE [hicpp-explicit-conversions]
+        expression(std::string const& symbol);
 
         template <integral_expression_typename U>
             requires (widthof(U) == widthof(T))
