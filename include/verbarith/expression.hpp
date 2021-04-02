@@ -25,8 +25,11 @@ namespace vra
 
     template <typename T>
     bool operator==(expression<T> const&, expression<T> const&) noexcept;
+
     template <typename T>
     std::ostream& operator<<(std::ostream&, expression<T> const&) noexcept;
+    template <typename T>
+    std::wostream& operator<<(std::wostream&, expression<T> const&) noexcept;
 
     template <>
     class expression<>
@@ -36,7 +39,9 @@ namespace vra
         friend struct std::hash<expression>;
 
         friend bool operator== <>(expression const&, expression const&) noexcept;
+
         friend std::ostream& operator<< <>(std::ostream&, expression const&) noexcept;
+        friend std::wostream& operator<< <>(std::wostream&, expression const&) noexcept;
 
         std::unique_ptr<resource_handler<_Z3_ast>> base_;
 
@@ -82,6 +87,8 @@ namespace vra
         void base(_Z3_ast*) noexcept;
 
         [[nodiscard]] std::size_t width() const noexcept;
+
+        [[nodiscard]] std::string representation() const noexcept;
     };
 
     template <integral_expression_typename T>
@@ -91,7 +98,9 @@ namespace vra
         friend class expression;
 
         friend bool operator== <>(expression const&, expression const&) noexcept;
+
         friend std::ostream& operator<< <>(std::ostream&, expression const&) noexcept;
+        friend std::wostream& operator<< <>(std::wostream&, expression const&) noexcept;
 
         template <typename = void>
         explicit expression(_Z3_ast*) noexcept;

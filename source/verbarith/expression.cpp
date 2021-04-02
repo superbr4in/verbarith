@@ -20,13 +20,19 @@ namespace vra
     {
         return resource_context::apply(Z3_is_eq_ast, expression_1.base(), expression_2.base());
     }
+
     template <typename T>
     std::ostream& operator<<(std::ostream& stream, expression<T> const& expression) noexcept
     {
-        std::string const representation(resource_context::apply(Z3_ast_to_string, expression.base()));
+        stream << expression.representation();
 
-        // Remove line breaks and indent
-        stream << std::regex_replace(representation, std::regex("\\n\\s*"), " ");
+        return stream;
+    }
+    template <typename T>
+    std::wostream& operator<<(std::wostream& stream, expression<T> const& expression) noexcept
+    {
+        auto const representation = expression.representation();
+        stream << std::wstring(representation.begin(), representation.end());
 
         return stream;
     }
@@ -222,6 +228,16 @@ namespace vra
     std::size_t expression<>::width() const noexcept
     {
         return resource_context::apply(Z3_get_bv_sort_size, expression_sort(base()));
+    }
+
+    std::string expression<>::representation() const noexcept
+    {
+        std::string string(resource_context::apply(Z3_ast_to_string, base()));
+
+        // Remove line breaks
+        string = std::regex_replace(string, std::regex(R"(\n *)"), " ");
+
+        return string;
     }
 
     template <integral_expression_typename T>
@@ -597,7 +613,8 @@ namespace std // NOLINT [cert-dcl58-cpp]
     LOOP_TYPE_WIDTH_DIVIDE_2(T, U, INSTANTIATE_EXPRESSION_SQUARE_INDEXED, T, U);
 #define INSTANTIATE_EXPRESSION(T)\
     template bool            vra::operator==(EXPRESSION(T) const&, EXPRESSION(T) const&);\
-    template std::ostream&   vra::operator<<(std::ostream       &, EXPRESSION(T) const&);\
+    template std:: ostream&  vra::operator<<(std:: ostream      &, EXPRESSION(T) const&);\
+    template std::wostream&  vra::operator<<(std::wostream      &, EXPRESSION(T) const&);\
     template class           vra::EXPRESSION(T);\
     template class std::hash<vra::EXPRESSION(T)>;\
     LOOP_TYPES_1(INSTANTIATE_EXPRESSION_SQUARE, T);
