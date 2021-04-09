@@ -16,14 +16,14 @@ TEST_CASE("Expression: Symbol requirements")
 {
     std::string const error_message("Invalid symbol");
 
-    CHECK_THROWS_WITH(expression<unsigned char>(""),    error_message);
-    CHECK_THROWS_WITH(expression<unsigned char>("0"),   error_message);
-    CHECK_THROWS_WITH(expression<unsigned char>("0ab"), error_message);
-    CHECK_THROWS_WITH(expression<unsigned char>(" "),   error_message);
-    CHECK_THROWS_WITH(expression<unsigned char>("a "),  error_message);
-    CHECK_THROWS_WITH(expression<unsigned char>("a b"), error_message);
-    CHECK_THROWS_WITH(expression<unsigned char>("c\t"), error_message);
-    CHECK_THROWS_WITH(expression<unsigned char>("\n"),  error_message);
+    CHECK_THROWS_WITH(expression<unsigned char>::symbol(""),    error_message);
+    CHECK_THROWS_WITH(expression<unsigned char>::symbol("0"),   error_message);
+    CHECK_THROWS_WITH(expression<unsigned char>::symbol("0ab"), error_message);
+    CHECK_THROWS_WITH(expression<unsigned char>::symbol(" "),   error_message);
+    CHECK_THROWS_WITH(expression<unsigned char>::symbol("a "),  error_message);
+    CHECK_THROWS_WITH(expression<unsigned char>::symbol("a b"), error_message);
+    CHECK_THROWS_WITH(expression<unsigned char>::symbol("c\t"), error_message);
+    CHECK_THROWS_WITH(expression<unsigned char>::symbol("\n"),  error_message);
 }
 
 TEST_CASE("Expression: Signedness")
@@ -71,7 +71,7 @@ TEST_CASE("Expression: Joint")
 {
     SECTION("Itself")
     {
-        expression<unsigned> const value("X");
+        auto const value = expression<unsigned>::symbol("X");
 
         CHECK(expression<unsigned>::join<unsigned>({ value }) == value);
     }
@@ -105,7 +105,7 @@ TEST_CASE("Expression: Extraction")
 {
     SECTION("Itself")
     {
-        expression<unsigned> const value("X");
+        auto const value = expression<unsigned>::symbol("X");
 
         CHECK(value.extract<unsigned, 0>() == value);
     }
@@ -133,7 +133,7 @@ TEST_CASE("Expression: Extraction")
 TEST_CASE("Expression: Conclusiveness")
 {
     CHECK(expression<unsigned char>(27).conclusive());
-    CHECK_FALSE(expression<unsigned char>("X").conclusive());
+    CHECK_FALSE(expression<unsigned char>::symbol("X").conclusive());
 }
 
 TEST_CASE("Expression: Dependencies")
@@ -144,7 +144,7 @@ TEST_CASE("Expression: Dependencies")
 
     std::string const value_2_symbol("X");
 
-    expression<unsigned char> const value_2(value_2_symbol);
+    auto const value_2 = expression<unsigned char>::symbol(value_2_symbol);
     auto const value_2_dependencies = value_2.dependencies();
     REQUIRE(1 == value_2_dependencies.size());
     REQUIRE(value_2_symbol == *value_2_dependencies.begin());
@@ -166,7 +166,7 @@ TEST_CASE("Expression: Dependencies")
 
     std::string const value_6_symbol("Y");
 
-    expression<unsigned char> const value_6(value_6_symbol);
+    auto const value_6 = expression<unsigned char>::symbol(value_6_symbol);
 
     auto const value_7 = value_4 - value_6;
     auto const value_7_dependencies = value_7.dependencies();
@@ -181,7 +181,7 @@ TEST_CASE("Expression: Dependencies (indirect)")
     auto const value_1_dependencies = value_1.dependencies_indirect();
     REQUIRE(0 == value_1_dependencies.size());
 
-    expression<unsigned char> const value_2("X");
+    auto const value_2 = expression<unsigned char>::symbol("X");
     auto const value_2_dependencies = value_2.dependencies_indirect();
     REQUIRE(0 == value_2_dependencies.size());
 
@@ -213,12 +213,12 @@ TEST_CASE("Expression: Evaluation")
     CHECK(expression<  signed char>(-44).evaluate() == -44);
     CHECK(expression(static_cast<unsigned char>(599)).evaluate() == 87);
     CHECK(expression(static_cast<  signed char>(234)).evaluate() == -22);
-    CHECK_THROWS_WITH(expression<unsigned char>("X").evaluate(), "Inconclusive evaluation");
+    CHECK_THROWS_WITH(expression<unsigned char>::symbol("X").evaluate(), "Inconclusive evaluation");
 }
 
 TEST_CASE("Expression: Equality")
 {
-    expression<unsigned> a("a");
+    auto a = expression<unsigned>::symbol("a");
 
     SECTION("Same")
     {
@@ -256,7 +256,7 @@ TEST_CASE("Expression: Equality")
     }
     SECTION("Other")
     {
-        expression<unsigned> const b("b");
+        auto const b = expression<unsigned>::symbol("b");
 
         CHECK_FALSE(b == a);
         CHECK      (b != a);

@@ -250,12 +250,20 @@ namespace vra
     expression<T>::expression(T const value) noexcept :
         expression(resource_context::apply(Z3_mk_unsigned_int64, static_cast<std::uint64_t>(value), expression_sort::instance<widthof(T)>()))
     { }
+
     template <integral_expression_typename T>
-    expression<T>::expression(std::string const& symbol) :
-        expression(resource_context::apply(Z3_mk_const, resource_context::apply(Z3_mk_string_symbol, symbol.c_str()), expression_sort::instance<widthof(T)>()))
+    expression<T> expression<T>::symbol(std::string const& symbol)
     {
         if (symbol.empty() || std::isdigit(symbol.front()) != 0 || std::ranges::any_of(symbol, [](char const c) { return c == ' ' || std::isprint(c) == 0; }))
             throw std::invalid_argument("Invalid symbol");
+
+        return expression(
+            resource_context::apply(
+                Z3_mk_const,
+                resource_context::apply(
+                    Z3_mk_string_symbol,
+                    symbol.c_str()),
+                expression_sort::instance<widthof(T)>()));
     }
 
     template <integral_expression_typename T>
@@ -288,7 +296,7 @@ namespace vra
     {
         if constexpr (widthof(U) == widthof(T))
         {
-            return expression<T>(std::get<0>(parts));
+            return expression(std::get<0>(parts));
         }
         else
         {

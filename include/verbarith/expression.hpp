@@ -109,8 +109,8 @@ namespace vra
 
         // NOLINTNEXTLINE [hicpp-explicit-conversions]
         expression(T value) noexcept;
-        // NOLINTNEXTLINE [hicpp-explicit-conversions]
-        expression(std::string const& symbol);
+
+        [[nodiscard]] static expression symbol(std::string const& symbol);
 
         template <integral_expression_typename U>
             requires (widthof(U) == widthof(T))
