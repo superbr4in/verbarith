@@ -628,8 +628,9 @@ namespace std // NOLINT [cert-dcl58-cpp]
     LOOP_TYPES_1(INSTANTIATE_EXPRESSION_SQUARE, T);
 LOOP_TYPES_0(INSTANTIATE_EXPRESSION);
 
-template bool          vra::operator==(expression<> const&, expression<> const&);
-template std::ostream& vra::operator<<(std::ostream      &, expression<> const&);
+template bool           vra::operator==(expression<> const&, expression<> const&);
+template std::ostream&  vra::operator<<(std::ostream      &, expression<> const&);
+template std::wostream& vra::operator<<(std::wostream     &, expression<> const&);
 
 #define INSTANTIATE_ANONYMOUS_EXPRESSION(T)\
     template                           vra::expression<>::expression(EXPRESSION(T) const&);\
