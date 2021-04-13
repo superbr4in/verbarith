@@ -193,9 +193,8 @@ namespace vra
         auto* const key_resource = key.base();
         auto* const value_resource = value.base();
 
-        // TODO: update()
         base(resource_context::apply(Z3_substitute, base(), 1, &key_resource, &value_resource));
-        base(resource_context::apply(Z3_simplify, base()));
+        update(Z3_simplify);
     }
     void expression<>::substitute_indirect(expression const& key_pointer, expression<std::byte> const& value) noexcept
     {
@@ -211,9 +210,8 @@ namespace vra
         auto* const key_resource = key.base();
         auto* const value_resource = value.base();
 
-        // TODO: update()
         base(resource_context::apply(Z3_substitute, base(), 1, &key_resource, &value_resource));
-        base(resource_context::apply(Z3_simplify, base()));
+        update(Z3_simplify);
     }
 
     _Z3_ast* expression<>::base() const noexcept
@@ -240,6 +238,137 @@ namespace vra
         return string;
     }
 
+    template <typename T, typename Applicator>
+    expression<T> expression<>::derive(Applicator&& applicator) const noexcept
+    {
+        expression<T> derived(resource_context::apply(std::forward<Applicator>(applicator), base()));
+        derived.update(Z3_simplify);
+
+        return derived;
+    }
+    template <typename T, typename U, typename Applicator>
+    expression<T> expression<>::derive(Applicator&& applicator, expression<U> const& other) const noexcept
+    {
+        expression<T> derived(resource_context::apply(std::forward<Applicator>(applicator), base(), other.base()));
+        derived.update(Z3_simplify);
+
+        return derived;
+    }
+
+    template <typename Applicator>
+    void expression<>::update(Applicator&& applicator) noexcept
+    {
+        base(resource_context::apply(std::forward<Applicator>(applicator), base()));
+    }
+    template <typename Applicator>
+    void expression<>::update(Applicator&& applicator, expression const& other) noexcept
+    {
+        base(resource_context::apply(std::forward<Applicator>(applicator), base(), other.base()));
+    }
+    template <typename Applicator>
+    void expression<>::update(Applicator&& applicator, expression const& other_1, expression const& other_2) noexcept
+    {
+        base(resource_context::apply(std::forward<Applicator>(applicator), base(), other_1.base(), other_2.base()));
+    }
+
+    expression<bool> const expression<bool>::unsatisfiable(resource_context::apply(Z3_mk_false));
+    expression<bool> const expression<bool>::valid(resource_context::apply(Z3_mk_true));
+
+    expression<bool>::expression(_Z3_ast* const base) noexcept :
+        expression<>(base)
+    { }
+
+    expression<bool> expression<bool>::symbol(std::string const& symbol)
+    {
+        // TODO: Remove this and (possibly) more duplicated code
+        if (symbol.empty() || std::isdigit(symbol.front()) != 0 || std::ranges::any_of(symbol, [](char const c) { return c == ' ' || std::isprint(c) == 0; }))
+            throw std::invalid_argument("Invalid symbol");
+
+        return expression(
+            resource_context::apply(
+                Z3_mk_const,
+                resource_context::apply(
+                    Z3_mk_string_symbol,
+                    symbol.c_str()),
+                expression_sort::boolean()));
+    }
+
+    template <integral_expression_typename T>
+    expression<bool>::expression(expression<T> const& other) :
+        expression(!other.equal(zero<T>))
+    {
+        update(Z3_simplify);
+    }
+
+    bool expression<bool>::evaluate() const
+    {
+        switch (resource_context::apply(Z3_get_bool_value, base()))
+        {
+        case Z3_L_FALSE:
+            return false;
+        case Z3_L_TRUE:
+            return true;
+
+        default:
+            throw std::logic_error("Inconclusive evaluation");
+        }
+    }
+
+    expression<bool> expression<bool>::equal(expression const& other) const noexcept
+    {
+        return derive<bool>(Z3_mk_eq, other);
+    }
+
+    expression<bool>& expression<bool>::operator&=(expression const& other) noexcept
+    {
+        std::array<_Z3_ast*, 2> const arguments { base(), other.base() };
+        base(resource_context::apply(Z3_mk_and, arguments.size(), arguments.data()));
+        update(Z3_simplify);
+
+        return *this;
+    }
+    expression<bool>& expression<bool>::operator|=(expression const& other) noexcept
+    {
+        std::array<_Z3_ast*, 2> const arguments { base(), other.base() };
+        base(resource_context::apply(Z3_mk_or, arguments.size(), arguments.data()));
+        update(Z3_simplify);
+
+        return *this;
+    }
+    expression<bool>& expression<bool>::operator^=(expression const& other) noexcept
+    {
+        update(Z3_mk_xor, other);
+        update(Z3_simplify);
+
+        return *this;
+    }
+
+    expression<bool> expression<bool>::operator!() const noexcept
+    {
+        return derive<bool>(Z3_mk_not);
+    }
+
+    expression<bool> expression<bool>::operator&(expression const& other) const noexcept
+    {
+        std::array<_Z3_ast*, 2> const arguments { base(), other.base() };
+        expression derived(resource_context::apply(Z3_mk_and, arguments.size(), arguments.data()));
+        derived.update(Z3_simplify);
+
+        return derived;
+    }
+    expression<bool> expression<bool>::operator|(expression const& other) const noexcept
+    {
+        std::array<_Z3_ast*, 2> const arguments { base(), other.base() };
+        expression derived(resource_context::apply(Z3_mk_or, arguments.size(), arguments.data()));
+        derived.update(Z3_simplify);
+
+        return derived;
+    }
+    expression<bool> expression<bool>::operator^(expression const& other) const noexcept
+    {
+        return derive<bool>(Z3_mk_xor, other);
+    }
+
     template <integral_expression_typename T>
     template <typename>
     expression<T>::expression(_Z3_ast* const base) noexcept :
@@ -264,6 +393,13 @@ namespace vra
                     Z3_mk_string_symbol,
                     symbol.c_str()),
                 expression_sort::instance<widthof(T)>()));
+    }
+
+    template <integral_expression_typename T>
+    expression<T>::expression(expression<bool> const& other) noexcept :
+        expression(resource_context::apply(Z3_mk_ite, other.base(), one<T>.base(), zero<T>.base()))
+    {
+        update(Z3_simplify);
     }
 
     template <integral_expression_typename T>
@@ -332,7 +468,6 @@ namespace vra
 
     template <integral_expression_typename T>
     template <integral_expression_typename U>
-        requires (widthof(U) >= widthof(std::byte))
     expression<U> expression<T>::dereference() const noexcept
     {
         static auto const indirection = expression_operation::create<widthof(std::byte), widthof(T)>(indirection_symbol);
@@ -362,20 +497,12 @@ namespace vra
     template <integral_expression_typename T>
     expression<bool> expression<T>::equal(expression const& other) const noexcept
     {
-        auto result = derive<bool>(Z3_mk_eq, other);
-        result.update(Z3_mk_ite, one<bool>, zero<bool>);
-        result.update(Z3_simplify);
-
-        return result;
+        return derive<bool>(Z3_mk_eq, other);
     }
     template <integral_expression_typename T>
     expression<bool> expression<T>::less(expression const& other) const noexcept
     {
-        auto result = derive<bool>(std::signed_integral<T> ? Z3_mk_bvslt : Z3_mk_bvult, other);
-        result.update(Z3_mk_ite, one<bool>, zero<bool>);
-        result.update(Z3_simplify);
-
-        return result;
+        return derive<bool>(std::signed_integral<T> ? Z3_mk_bvslt : Z3_mk_bvult, other);
     }
 
     template <integral_expression_typename T>
@@ -473,101 +600,63 @@ namespace vra
     template <integral_expression_typename T>
     expression<T> expression<T>::operator-() const noexcept
     {
-        return derive(Z3_mk_bvneg);
+        return derive<T>(Z3_mk_bvneg);
     }
     template <integral_expression_typename T>
     expression<T> expression<T>::operator~() const noexcept
     {
-        return derive(Z3_mk_bvnot);
+        return derive<T>(Z3_mk_bvnot);
     }
 
     template <integral_expression_typename T>
     expression<T> expression<T>::operator +(expression const& other) const noexcept
     {
-        return derive(Z3_mk_bvadd, other);
+        return derive<T>(Z3_mk_bvadd, other);
     }
     template <integral_expression_typename T>
     expression<T> expression<T>::operator -(expression const& other) const noexcept
     {
-        return derive(Z3_mk_bvsub, other);
+        return derive<T>(Z3_mk_bvsub, other);
     }
     template <integral_expression_typename T>
     expression<T> expression<T>::operator *(expression const& other) const noexcept
     {
-        return derive(Z3_mk_bvmul, other);
+        return derive<T>(Z3_mk_bvmul, other);
     }
     template <integral_expression_typename T>
     expression<T> expression<T>::operator /(expression const& other) const noexcept
     {
-        return derive(std::signed_integral<T> ? Z3_mk_bvsdiv : Z3_mk_bvudiv, other);
+        return derive<T>(std::signed_integral<T> ? Z3_mk_bvsdiv : Z3_mk_bvudiv, other);
     }
     template <integral_expression_typename T>
     expression<T> expression<T>::operator %(expression const& other) const noexcept
     {
-        return derive(std::signed_integral<T> ? Z3_mk_bvsrem : Z3_mk_bvurem, other);
+        return derive<T>(std::signed_integral<T> ? Z3_mk_bvsrem : Z3_mk_bvurem, other);
     }
     template <integral_expression_typename T>
     expression<T> expression<T>::operator &(expression const& other) const noexcept
     {
-        return derive(Z3_mk_bvand, other);
+        return derive<T>(Z3_mk_bvand, other);
     }
     template <integral_expression_typename T>
     expression<T> expression<T>::operator |(expression const& other) const noexcept
     {
-        return derive(Z3_mk_bvor, other);
+        return derive<T>(Z3_mk_bvor, other);
     }
     template <integral_expression_typename T>
     expression<T> expression<T>::operator ^(expression const& other) const noexcept
     {
-        return derive(Z3_mk_bvxor, other);
+        return derive<T>(Z3_mk_bvxor, other);
     }
     template <integral_expression_typename T>
     expression<T> expression<T>::operator<<(expression const& other) const noexcept
     {
-        return derive(Z3_mk_bvshl, other);
+        return derive<T>(Z3_mk_bvshl, other);
     }
     template <integral_expression_typename T>
     expression<T> expression<T>::operator>>(expression const& other) const noexcept
     {
-        return derive(Z3_mk_bvlshr, other);
-    }
-
-    template <integral_expression_typename T>
-    template <integral_expression_typename U, typename Applicator>
-    expression<U> expression<T>::derive(Applicator&& applicator) const noexcept
-    {
-        expression<U> derived(resource_context::apply(std::forward<Applicator>(applicator), base()));
-        derived.update(Z3_simplify);
-
-        return derived;
-    }
-    template <integral_expression_typename T>
-    template <integral_expression_typename U, typename Applicator>
-    expression<U> expression<T>::derive(Applicator&& applicator, expression const& other) const noexcept
-    {
-        expression<U> derived(resource_context::apply(std::forward<Applicator>(applicator), base(), other.base()));
-        derived.update(Z3_simplify);
-
-        return derived;
-    }
-
-    template <integral_expression_typename T>
-    template <typename Applicator>
-    void expression<T>::update(Applicator&& applicator) noexcept
-    {
-        base(resource_context::apply(std::forward<Applicator>(applicator), base()));
-    }
-    template <integral_expression_typename T>
-    template <typename Applicator>
-    void expression<T>::update(Applicator&& applicator, expression const& other) noexcept
-    {
-        base(resource_context::apply(std::forward<Applicator>(applicator), base(), other.base()));
-    }
-    template <integral_expression_typename T>
-    template <typename Applicator>
-    void expression<T>::update(Applicator&& applicator, expression const& other_1, expression const& other_2) noexcept
-    {
-        base(resource_context::apply(std::forward<Applicator>(applicator), base(), other_1.base(), other_2.base()));
+        return derive<T>(Z3_mk_bvlshr, other);
     }
 
     template <integral_expression_typename T>
@@ -596,13 +685,20 @@ namespace vra
 
 namespace std // NOLINT [cert-dcl58-cpp]
 {
-    std::size_t hash<vra::expression<>>::operator()(vra::expression<> const& expression) const noexcept
+    size_t hash<vra::expression<>>::operator()(vra::expression<> const& expression) const noexcept
     {
         return vra::resource_context::apply(Z3_get_ast_hash, expression.base());
     }
 
+    size_t hash<vra::expression<bool>>::operator()(vra::expression<bool> const& expression) const noexcept
+    {
+        static hash<vra::expression<>> constexpr base_hasher;
+
+        return base_hasher(expression);
+    }
+
     template <vra::integral_expression_typename T>
-    std::size_t hash<vra::expression<T>>::operator()(vra::expression<T> const& expression) const noexcept
+    size_t hash<vra::expression<T>>::operator()(vra::expression<T> const& expression) const noexcept
     {
         static hash<vra::expression<>> constexpr base_hasher;
 
@@ -611,22 +707,6 @@ namespace std // NOLINT [cert-dcl58-cpp]
 }
 
 #define EXPRESSION(T) expression<TYPE(T)>
-
-#define INSTANTIATE_EXPRESSION_SQUARE_INDEXED(T, U, index)\
-    template vra::EXPRESSION(U) vra::EXPRESSION(T)::extract<TYPE(U), index>() const;
-#define INSTANTIATE_EXPRESSION_SQUARE(T, U)\
-    IF_NOT_EQUAL(            T, U, template                    vra::EXPRESSION(T)::expression(     EXPRESSION(U) const&));\
-    IF_TYPE_WIDTH_DIVIDABLE( T, U, template vra::EXPRESSION(T) vra::EXPRESSION(T)::join(std::array<EXPRESSION(U), TYPE_WIDTH_DIVIDE(T, U)> const&));\
-    IF_NOT_EQUAL(            U, 0, template vra::EXPRESSION(U) vra::EXPRESSION(T)::dereference() const);\
-    LOOP_TYPE_WIDTH_DIVIDE_2(T, U, INSTANTIATE_EXPRESSION_SQUARE_INDEXED, T, U);
-#define INSTANTIATE_EXPRESSION(T)\
-    template bool            vra::operator==(EXPRESSION(T) const&, EXPRESSION(T) const&);\
-    template std:: ostream&  vra::operator<<(std:: ostream      &, EXPRESSION(T) const&);\
-    template std::wostream&  vra::operator<<(std::wostream      &, EXPRESSION(T) const&);\
-    template class           vra::EXPRESSION(T);\
-    template class std::hash<vra::EXPRESSION(T)>;\
-    LOOP_TYPES_1(INSTANTIATE_EXPRESSION_SQUARE, T);
-LOOP_TYPES_0(INSTANTIATE_EXPRESSION);
 
 template bool           vra::operator==(expression<> const&, expression<> const&);
 template std::ostream&  vra::operator<<(std::ostream      &, expression<> const&);
@@ -641,3 +721,27 @@ template std::wostream& vra::operator<<(std::wostream     &, expression<> const&
     template vra::EXPRESSION(T)      & vra::expression<>::as_expression();\
     template            TYPE(T)        vra::expression<>::evaluate() const;
 LOOP_TYPES_0(INSTANTIATE_ANONYMOUS_EXPRESSION);
+
+template bool           vra::operator==(expression<bool> const&, expression<bool> const&);
+template std::ostream&  vra::operator<<(std::ostream          &, expression<bool> const&);
+template std::wostream& vra::operator<<(std::wostream         &, expression<bool> const&);
+
+#define INSTANTIATE_BOOLEAN_EXPRESSION(T)\
+    template vra::expression<bool>::expression(EXPRESSION(T) const&);
+LOOP_TYPES_0(INSTANTIATE_BOOLEAN_EXPRESSION);
+
+#define INSTANTIATE_EXPRESSION_SQUARE_INDEXED(T, U, index)\
+    template vra::EXPRESSION(U) vra::EXPRESSION(T)::extract<TYPE(U), index>() const;
+#define INSTANTIATE_EXPRESSION_SQUARE(T, U)\
+    IF_NOT_EQUAL(            T, U, template                    vra::EXPRESSION(T)::expression(     EXPRESSION(U) const&));\
+    IF_TYPE_WIDTH_DIVIDABLE( T, U, template vra::EXPRESSION(T) vra::EXPRESSION(T)::join(std::array<EXPRESSION(U), TYPE_WIDTH_DIVIDE(T, U)> const&));\
+                                   template vra::EXPRESSION(U) vra::EXPRESSION(T)::dereference() const;\
+    LOOP_TYPE_WIDTH_DIVIDE_2(T, U, INSTANTIATE_EXPRESSION_SQUARE_INDEXED, T, U);
+#define INSTANTIATE_EXPRESSION(T)\
+    template bool            vra::operator==(EXPRESSION(T) const&, EXPRESSION(T) const&);\
+    template std:: ostream&  vra::operator<<(std:: ostream      &, EXPRESSION(T) const&);\
+    template std::wostream&  vra::operator<<(std::wostream      &, EXPRESSION(T) const&);\
+    template class           vra::EXPRESSION(T);\
+    template class std::hash<vra::EXPRESSION(T)>;\
+    LOOP_TYPES_1(INSTANTIATE_EXPRESSION_SQUARE, T);
+LOOP_TYPES_0(INSTANTIATE_EXPRESSION);

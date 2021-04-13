@@ -27,6 +27,8 @@ namespace vra
         // NOLINTNEXTLINE [hicpp-explicit-conversions]
         [[nodiscard]] operator _Z3_sort*() const noexcept;
 
+        [[nodiscard]] static expression_sort const& boolean() noexcept;
+
         template <std::size_t WIDTH>
             requires (WIDTH > 0)
         [[nodiscard]] static expression_sort const& instance() noexcept;

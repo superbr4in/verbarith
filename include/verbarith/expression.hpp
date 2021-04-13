@@ -13,7 +13,7 @@ namespace vra
     template <typename T>
     concept integral_expression_typename =
             std::same_as<T, std::byte>
-        || (std::same_as<T, std::remove_cvref_t<T>> && std::integral<T>);
+        || (std::same_as<T, std::remove_cvref_t<T>> && !std::same_as<T, bool> && std::integral<T>);
 
     template <typename>
     class resource_handler;
@@ -89,6 +89,56 @@ namespace vra
         [[nodiscard]] std::size_t width() const noexcept;
 
         [[nodiscard]] std::string representation() const noexcept;
+
+        template <typename T, typename Applicator>
+        [[nodiscard]] expression<T> derive(Applicator&&) const noexcept;
+        template <typename T, typename U, typename Applicator>
+        [[nodiscard]] expression<T> derive(Applicator&&, expression<U> const&) const noexcept;
+
+        template <typename Applicator>
+        void update(Applicator&&) noexcept;
+        template <typename Applicator>
+        void update(Applicator&&, expression const&) noexcept;
+        template <typename Applicator>
+        void update(Applicator&&, expression const&, expression const&) noexcept;
+    };
+
+    template <>
+    class expression<bool> : public expression<>
+    {
+        template <typename, typename>
+        friend class expression;
+
+        friend bool operator== <>(expression const&, expression const&) noexcept;
+
+        friend std::ostream& operator<< <>(std::ostream&, expression const&) noexcept;
+        friend std::wostream& operator<< <>(std::wostream&, expression const&) noexcept;
+
+        explicit expression(_Z3_ast*) noexcept;
+
+    public:
+
+        static expression const unsatisfiable;
+        static expression const valid;
+
+        [[nodiscard]] static expression symbol(std::string const& symbol);
+
+        template <integral_expression_typename T>
+        explicit expression(expression<T> const&);
+
+        [[nodiscard]] bool evaluate() const;
+
+        [[nodiscard]] expression<bool> equal(expression const&) const noexcept;
+
+        expression& operator&=(expression const&) noexcept;
+        expression& operator|=(expression const&) noexcept;
+        expression& operator^=(expression const&) noexcept;
+
+        [[nodiscard]] expression operator!() const noexcept;
+
+        [[nodiscard]] expression operator&(expression const&) const noexcept;
+        [[nodiscard]] expression operator|(expression const&) const noexcept;
+        [[nodiscard]] expression operator^(expression const&) const noexcept;
     };
 
     template <integral_expression_typename T>
@@ -112,6 +162,8 @@ namespace vra
 
         [[nodiscard]] static expression symbol(std::string const& symbol);
 
+        explicit expression(expression<bool> const&) noexcept;
+
         template <integral_expression_typename U>
             requires (widthof(U) == widthof(T))
         explicit expression(expression<U> const&) noexcept;
@@ -132,7 +184,6 @@ namespace vra
         [[nodiscard]] T evaluate() const;
 
         template <integral_expression_typename U>
-            requires (widthof(U) >= widthof(std::byte))
         [[nodiscard]] expression<U> dereference() const noexcept;
 
         [[nodiscard]] expression<bool> equal(expression const&) const noexcept;
@@ -168,18 +219,6 @@ namespace vra
 
     private:
 
-        template <integral_expression_typename U = T, typename Applicator>
-        [[nodiscard]] expression<U> derive(Applicator&&) const noexcept;
-        template <integral_expression_typename U = T, typename Applicator>
-        [[nodiscard]] expression<U> derive(Applicator&&, expression const&) const noexcept;
-
-        template <typename Applicator>
-        void update(Applicator&&) noexcept;
-        template <typename Applicator>
-        void update(Applicator&&, expression const&) noexcept;
-        template <typename Applicator>
-        void update(Applicator&&, expression const&, expression const&) noexcept;
-
         template <integral_expression_typename U, std::size_t COUNT, typename Generator>
             requires (COUNT > 1)
         [[nodiscard]] static expression<U> concatenate(Generator const&) noexcept;
@@ -194,12 +233,18 @@ namespace std
     template <>
     struct hash<vra::expression<>>
     {
-        [[nodiscard]] std::size_t operator()(vra::expression<> const&) const noexcept;
+        [[nodiscard]] size_t operator()(vra::expression<> const&) const noexcept;
+    };
+
+    template <>
+    struct hash<vra::expression<bool>>
+    {
+        [[nodiscard]] size_t operator()(vra::expression<bool> const&) const noexcept;
     };
 
     template <vra::integral_expression_typename T>
     struct hash<vra::expression<T>>
     {
-        [[nodiscard]] std::size_t operator()(vra::expression<T> const&) const noexcept;
+        [[nodiscard]] size_t operator()(vra::expression<T> const&) const noexcept;
     };
 }

@@ -15,4 +15,11 @@ namespace vra
     {
         return base_.value();
     }
+
+    expression_sort const& expression_sort::boolean() noexcept
+    {
+        static expression_sort const sort(resource_context::apply(Z3_mk_bool_sort));
+
+        return sort;
+    }
 }

@@ -5,8 +5,6 @@
 using namespace vra;
 
 // Type deduction
-static_assert(std::is_same_v<decltype(expression(true                          )), expression<bool          >>);
-static_assert(std::is_same_v<decltype(expression(false                         )), expression<bool          >>);
 static_assert(std::is_same_v<decltype(expression(static_cast<unsigned char >(0))), expression<unsigned char >>);
 static_assert(std::is_same_v<decltype(expression(static_cast<unsigned short>(0))), expression<unsigned short>>);
 static_assert(std::is_same_v<decltype(expression(static_cast<unsigned int  >(0))), expression<unsigned int  >>);
