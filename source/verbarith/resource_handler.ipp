@@ -5,45 +5,40 @@
 
 namespace vra
 {
-    template <typename Resource>
-    void resource_handler<Resource>::resource_deleter::resource_deleter::operator()(Resource* const resource) const noexcept
+    template <typename Resource, typename ResourceBase, void INC(_Z3_context*, ResourceBase*), void DEC(_Z3_context*, ResourceBase*)>
+    void resource_handler<Resource, ResourceBase, INC, DEC>::resource_deleter::resource_deleter::operator()(Resource* const resource) const noexcept
     {
         // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
-        resource_context::apply(Z3_dec_ref, reinterpret_cast<_Z3_ast*>(resource));
+        resource_context::apply(DEC, reinterpret_cast<ResourceBase*>(resource));
     }
 
-    template <typename Resource>
-    resource_handler<Resource>::resource_pointer::resource_pointer(Resource* const resource) noexcept :
+    template <typename Resource, typename ResourceBase, void INC(_Z3_context*, ResourceBase*), void DEC(_Z3_context*, ResourceBase*)>
+    resource_handler<Resource, ResourceBase, INC, DEC>::resource_pointer::resource_pointer(Resource* const resource) noexcept :
         std::unique_ptr<Resource, resource_deleter>(resource)
     {
-        initialize();
+        // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
+        resource_context::apply(INC, reinterpret_cast<ResourceBase*>(get()));
     }
-    template <typename Resource>
-    void resource_handler<Resource>::resource_pointer::reset(Resource* const resource) noexcept
+    template <typename Resource, typename ResourceBase, void INC(_Z3_context*, ResourceBase*), void DEC(_Z3_context*, ResourceBase*)>
+    void resource_handler<Resource, ResourceBase, INC, DEC>::resource_pointer::reset(Resource* const resource) noexcept
     {
         std::unique_ptr<Resource, resource_deleter>::reset(resource);
 
-        initialize();
-    }
-
-    template <typename Resource>
-    void resource_handler<Resource>::resource_pointer::initialize() noexcept
-    {
         // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
-        resource_context::apply(Z3_inc_ref, reinterpret_cast<_Z3_ast*>(get()));
+        resource_context::apply(INC, reinterpret_cast<ResourceBase*>(get()));
     }
 
-    template <typename Resource>
-    resource_handler<Resource>::resource_handler(Resource* const resource) noexcept :
+    template <typename Resource, typename ResourceBase, void INC(_Z3_context*, ResourceBase*), void DEC(_Z3_context*, ResourceBase*)>
+    resource_handler<Resource, ResourceBase, INC, DEC>::resource_handler(Resource* const resource) noexcept :
         resource_(resource)
     { }
 
-    template <typename Resource>
-    resource_handler<Resource>::resource_handler(resource_handler const& other) noexcept :
+    template <typename Resource, typename ResourceBase, void INC(_Z3_context*, ResourceBase*), void DEC(_Z3_context*, ResourceBase*)>
+    resource_handler<Resource, ResourceBase, INC, DEC>::resource_handler(resource_handler const& other) noexcept :
         resource_(other.value())
     { }
-    template <typename Resource>
-    resource_handler<Resource>& resource_handler<Resource>::operator=(resource_handler const& other) noexcept
+    template <typename Resource, typename ResourceBase, void INC(_Z3_context*, ResourceBase*), void DEC(_Z3_context*, ResourceBase*)>
+    resource_handler<Resource, ResourceBase, INC, DEC>& resource_handler<Resource, ResourceBase, INC, DEC>::operator=(resource_handler const& other) noexcept
     {
         if (&other != this)
             resource_.reset(other.value());
@@ -51,13 +46,13 @@ namespace vra
         return *this;
     }
 
-    template <typename Resource>
-    Resource* resource_handler<Resource>::value() const noexcept
+    template <typename Resource, typename ResourceBase, void INC(_Z3_context*, ResourceBase*), void DEC(_Z3_context*, ResourceBase*)>
+    Resource* resource_handler<Resource, ResourceBase, INC, DEC>::value() const noexcept
     {
         return resource_.get();
     }
-    template <typename Resource>
-    void resource_handler<Resource>::value(Resource* const resource) noexcept
+    template <typename Resource, typename ResourceBase, void INC(_Z3_context*, ResourceBase*), void DEC(_Z3_context*, ResourceBase*)>
+    void resource_handler<Resource, ResourceBase, INC, DEC>::value(Resource* const resource) noexcept
     {
         resource_.reset(resource);
     }

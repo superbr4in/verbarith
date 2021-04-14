@@ -2,9 +2,11 @@
 
 #include <memory>
 
+#include <z3.h>
+
 namespace vra
 {
-    template <typename Resource>
+    template <typename Resource, typename ResourceBase, void INC(_Z3_context*, ResourceBase*), void DEC(_Z3_context*, ResourceBase*)>
     class resource_handler
     {
         struct resource_deleter
@@ -19,10 +21,6 @@ namespace vra
             void reset(Resource*) noexcept;
 
             using std::unique_ptr<Resource, resource_deleter>::get;
-
-        private:
-
-            void initialize() noexcept;
         };
 
         resource_pointer resource_;

@@ -8,7 +8,7 @@ namespace vra
 {
     class expression_sort
     {
-        resource_handler<_Z3_sort> base_;
+        resource_handler<_Z3_sort, _Z3_ast, Z3_inc_ref, Z3_dec_ref> base_;
 
         explicit expression_sort(_Z3_sort*) noexcept;
 

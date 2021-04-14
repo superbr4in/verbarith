@@ -7,6 +7,14 @@
 
 // NOLINTNEXTLINE [cert-dcl51-cpp]
 struct _Z3_ast;
+// NOLINTNEXTLINE [cert-dcl51-cpp]
+struct _Z3_context;
+
+extern "C"
+{
+    void Z3_inc_ref(_Z3_context*, _Z3_ast*);
+    void Z3_dec_ref(_Z3_context*, _Z3_ast*);
+}
 
 namespace vra
 {
@@ -15,7 +23,7 @@ namespace vra
             std::same_as<T, std::byte>
         || (std::same_as<T, std::remove_cvref_t<T>> && !std::same_as<T, bool> && std::integral<T>);
 
-    template <typename>
+    template <typename, typename ResourceBase, void (_Z3_context*, ResourceBase*), void (_Z3_context*, ResourceBase*)>
     class resource_handler;
 
     template <typename = void,
@@ -43,7 +51,7 @@ namespace vra
         friend std::ostream& operator<< <>(std::ostream&, expression const&) noexcept;
         friend std::wostream& operator<< <>(std::wostream&, expression const&) noexcept;
 
-        std::unique_ptr<resource_handler<_Z3_ast>> base_;
+        std::unique_ptr<resource_handler<_Z3_ast, _Z3_ast, Z3_inc_ref, Z3_dec_ref>> base_;
 
         explicit expression(_Z3_ast*) noexcept;
 

@@ -38,7 +38,7 @@ namespace vra
     }
 
     expression<>::expression(_Z3_ast* const resource) noexcept :
-        base_(std::make_unique<resource_handler<_Z3_ast>>(resource))
+        base_(std::make_unique<resource_handler<_Z3_ast, _Z3_ast, Z3_inc_ref, Z3_dec_ref>>(resource))
     { }
 
     expression<>::~expression() noexcept = default;
@@ -51,7 +51,7 @@ namespace vra
         static_assert(sizeof(expression<T>) == sizeof(expression));
     }
     expression<>::expression(expression const& other) noexcept :
-        base_(std::make_unique<resource_handler<_Z3_ast>>(other.base()))
+        base_(std::make_unique<resource_handler<_Z3_ast, _Z3_ast, Z3_inc_ref, Z3_dec_ref>>(other.base()))
     { }
     template <integral_expression_typename T>
     expression<>& expression<>::operator=(expression<T> const& other)
@@ -67,7 +67,7 @@ namespace vra
     expression<>& expression<>::operator=(expression const& other) noexcept
     {
         if (&other != this)
-            base_ = std::make_unique<resource_handler<_Z3_ast>>(other.base());
+            base_ = std::make_unique<resource_handler<_Z3_ast, _Z3_ast, Z3_inc_ref, Z3_dec_ref>>(other.base());
 
         return *this;
     }
