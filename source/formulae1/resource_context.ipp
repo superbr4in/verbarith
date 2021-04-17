@@ -4,7 +4,7 @@
 
 #include <formulae1/resource_context.hpp>
 
-namespace vra
+namespace fml
 {
     template <typename... Arguments, std::invocable<_Z3_context*, Arguments...> Applicator>
     std::invoke_result_t<Applicator, _Z3_context*, Arguments...> resource_context::apply(Applicator&& applicator, Arguments&&... arguments) noexcept

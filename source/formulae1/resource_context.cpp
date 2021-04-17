@@ -1,6 +1,6 @@
 #include <formulae1/resource_context.hpp>
 
-namespace vra
+namespace fml
 {
     resource_context::resource_context() noexcept :
         base_(Z3_mk_context_rc(Z3_mk_config()))

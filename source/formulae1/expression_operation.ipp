@@ -4,7 +4,7 @@
 #include <formulae1/expression_sort.ipp>
 #include <formulae1/resource_handler.ipp>
 
-namespace vra
+namespace fml
 {
     template <std::size_t WIDTH, std::size_t... WIDTHS, std::same_as<expression_sort>... SORTS>
     static std::array<_Z3_sort*, sizeof...(WIDTHS) + sizeof...(SORTS) + 1> make_sorts(SORTS const&... sorts) noexcept

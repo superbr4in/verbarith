@@ -16,7 +16,7 @@ extern "C"
     void Z3_dec_ref(_Z3_context*, _Z3_ast*);
 }
 
-namespace vra
+namespace fml
 {
     template <typename T>
     concept integral_expression_typename =
@@ -240,20 +240,20 @@ namespace vra
 namespace std
 {
     template <>
-    struct hash<vra::expression<>>
+    struct hash<fml::expression<>>
     {
-        [[nodiscard]] size_t operator()(vra::expression<> const&) const noexcept;
+        [[nodiscard]] size_t operator()(fml::expression<> const&) const noexcept;
     };
 
     template <>
-    struct hash<vra::expression<bool>>
+    struct hash<fml::expression<bool>>
     {
-        [[nodiscard]] size_t operator()(vra::expression<bool> const&) const noexcept;
+        [[nodiscard]] size_t operator()(fml::expression<bool> const&) const noexcept;
     };
 
-    template <vra::integral_expression_typename T>
-    struct hash<vra::expression<T>>
+    template <fml::integral_expression_typename T>
+    struct hash<fml::expression<T>>
     {
-        [[nodiscard]] size_t operator()(vra::expression<T> const&) const noexcept;
+        [[nodiscard]] size_t operator()(fml::expression<T> const&) const noexcept;
     };
 }

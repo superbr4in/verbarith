@@ -5,7 +5,7 @@
 #include <formulae1/expression_operation.ipp>
 #include <formulae1/preprocessor_types.hpp>
 
-namespace vra
+namespace fml
 {
     // NOLINTNEXTLINE [cppcoreguidelines-avoid-non-const-global-variables]
     static _Z3_symbol* const indirection_symbol = resource_context::apply(Z3_mk_string_symbol, "deref");
@@ -689,22 +689,22 @@ namespace vra
 
 namespace std // NOLINT [cert-dcl58-cpp]
 {
-    size_t hash<vra::expression<>>::operator()(vra::expression<> const& expression) const noexcept
+    size_t hash<fml::expression<>>::operator()(fml::expression<> const& expression) const noexcept
     {
-        return vra::resource_context::apply(Z3_get_ast_hash, expression.base());
+        return fml::resource_context::apply(Z3_get_ast_hash, expression.base());
     }
 
-    size_t hash<vra::expression<bool>>::operator()(vra::expression<bool> const& expression) const noexcept
+    size_t hash<fml::expression<bool>>::operator()(fml::expression<bool> const& expression) const noexcept
     {
-        static hash<vra::expression<>> constexpr base_hasher;
+        static hash<fml::expression<>> constexpr base_hasher;
 
         return base_hasher(expression);
     }
 
-    template <vra::integral_expression_typename T>
-    size_t hash<vra::expression<T>>::operator()(vra::expression<T> const& expression) const noexcept
+    template <fml::integral_expression_typename T>
+    size_t hash<fml::expression<T>>::operator()(fml::expression<T> const& expression) const noexcept
     {
-        static hash<vra::expression<>> constexpr base_hasher;
+        static hash<fml::expression<>> constexpr base_hasher;
 
         return base_hasher(expression);
     }
@@ -712,40 +712,40 @@ namespace std // NOLINT [cert-dcl58-cpp]
 
 #define EXPRESSION(T) expression<TYPE(T)>
 
-template bool           vra::operator==(expression<> const&, expression<> const&);
-template std::ostream&  vra::operator<<(std::ostream      &, expression<> const&);
-template std::wostream& vra::operator<<(std::wostream     &, expression<> const&);
+template bool           fml::operator==(expression<> const&, expression<> const&);
+template std::ostream&  fml::operator<<(std::ostream      &, expression<> const&);
+template std::wostream& fml::operator<<(std::wostream     &, expression<> const&);
 
 #define INSTANTIATE_ANONYMOUS_EXPRESSION(T)\
-    template                           vra::expression<>::expression(EXPRESSION(T) const&);\
-    template vra::expression< >      & vra::expression<>::operator=( EXPRESSION(T) const&);\
-    template                           vra::expression<>::expression(EXPRESSION(T)&&);\
-    template vra::expression< >      & vra::expression<>::operator=( EXPRESSION(T)&&);\
-    template vra::EXPRESSION(T) const& vra::expression<>::as_expression() const;\
-    template vra::EXPRESSION(T)      & vra::expression<>::as_expression();\
-    template            TYPE(T)        vra::expression<>::evaluate() const;
+    template                           fml::expression<>::expression(EXPRESSION(T) const&);\
+    template fml::expression< >      & fml::expression<>::operator=( EXPRESSION(T) const&);\
+    template                           fml::expression<>::expression(EXPRESSION(T)&&);\
+    template fml::expression< >      & fml::expression<>::operator=( EXPRESSION(T)&&);\
+    template fml::EXPRESSION(T) const& fml::expression<>::as_expression() const;\
+    template fml::EXPRESSION(T)      & fml::expression<>::as_expression();\
+    template            TYPE(T)        fml::expression<>::evaluate() const;
 LOOP_TYPES_0(INSTANTIATE_ANONYMOUS_EXPRESSION);
 
-template bool           vra::operator==(expression<bool> const&, expression<bool> const&);
-template std::ostream&  vra::operator<<(std::ostream          &, expression<bool> const&);
-template std::wostream& vra::operator<<(std::wostream         &, expression<bool> const&);
+template bool           fml::operator==(expression<bool> const&, expression<bool> const&);
+template std::ostream&  fml::operator<<(std::ostream          &, expression<bool> const&);
+template std::wostream& fml::operator<<(std::wostream         &, expression<bool> const&);
 
 #define INSTANTIATE_BOOLEAN_EXPRESSION(T)\
-    template vra::expression<bool>::expression(EXPRESSION(T) const&);
+    template fml::expression<bool>::expression(EXPRESSION(T) const&);
 LOOP_TYPES_0(INSTANTIATE_BOOLEAN_EXPRESSION);
 
 #define INSTANTIATE_EXPRESSION_SQUARE_INDEXED(T, U, index)\
-    template vra::EXPRESSION(U) vra::EXPRESSION(T)::extract<TYPE(U), index>() const;
+    template fml::EXPRESSION(U) fml::EXPRESSION(T)::extract<TYPE(U), index>() const;
 #define INSTANTIATE_EXPRESSION_SQUARE(T, U)\
-    IF_NOT_EQUAL(            T, U, template                    vra::EXPRESSION(T)::expression(     EXPRESSION(U) const&));\
-    IF_TYPE_WIDTH_DIVIDABLE( T, U, template vra::EXPRESSION(T) vra::EXPRESSION(T)::join(std::array<EXPRESSION(U), TYPE_WIDTH_DIVIDE(T, U)> const&));\
-                                   template vra::EXPRESSION(U) vra::EXPRESSION(T)::dereference() const;\
+    IF_NOT_EQUAL(            T, U, template                    fml::EXPRESSION(T)::expression(     EXPRESSION(U) const&));\
+    IF_TYPE_WIDTH_DIVIDABLE( T, U, template fml::EXPRESSION(T) fml::EXPRESSION(T)::join(std::array<EXPRESSION(U), TYPE_WIDTH_DIVIDE(T, U)> const&));\
+                                   template fml::EXPRESSION(U) fml::EXPRESSION(T)::dereference() const;\
     LOOP_TYPE_WIDTH_DIVIDE_2(T, U, INSTANTIATE_EXPRESSION_SQUARE_INDEXED, T, U);
 #define INSTANTIATE_EXPRESSION(T)\
-    template bool            vra::operator==(EXPRESSION(T) const&, EXPRESSION(T) const&);\
-    template std:: ostream&  vra::operator<<(std:: ostream      &, EXPRESSION(T) const&);\
-    template std::wostream&  vra::operator<<(std::wostream      &, EXPRESSION(T) const&);\
-    template class           vra::EXPRESSION(T);\
-    template class std::hash<vra::EXPRESSION(T)>;\
+    template bool            fml::operator==(EXPRESSION(T) const&, EXPRESSION(T) const&);\
+    template std:: ostream&  fml::operator<<(std:: ostream      &, EXPRESSION(T) const&);\
+    template std::wostream&  fml::operator<<(std::wostream      &, EXPRESSION(T) const&);\
+    template class           fml::EXPRESSION(T);\
+    template class std::hash<fml::EXPRESSION(T)>;\
     LOOP_TYPES_1(INSTANTIATE_EXPRESSION_SQUARE, T);
 LOOP_TYPES_0(INSTANTIATE_EXPRESSION);

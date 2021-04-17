@@ -2,7 +2,7 @@
 
 #include <formulae1/expression.hpp>
 
-using namespace vra;
+using namespace fml;
 
 // Type deduction
 static_assert(std::is_same_v<decltype(expression(static_cast<unsigned char >(0))), expression<unsigned char >>);

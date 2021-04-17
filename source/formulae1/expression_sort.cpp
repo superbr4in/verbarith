@@ -1,7 +1,7 @@
 #include <formulae1/expression_sort.hpp>
 #include <formulae1/resource_handler.ipp>
 
-namespace vra
+namespace fml
 {
     expression_sort::expression_sort(_Z3_sort* const base) noexcept :
         base_(base)

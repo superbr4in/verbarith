@@ -1,7 +1,7 @@
 #include <formulae1/expression_operation.hpp>
 #include <formulae1/resource_handler.ipp>
 
-namespace vra
+namespace fml
 {
     expression_operation::expression_operation(_Z3_func_decl* const base) noexcept :
         base_(base)

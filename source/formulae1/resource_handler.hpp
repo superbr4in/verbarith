@@ -4,7 +4,7 @@
 
 #include <z3.h>
 
-namespace vra
+namespace fml
 {
     template <typename Resource, typename ResourceBase, void INC(_Z3_context*, ResourceBase*), void DEC(_Z3_context*, ResourceBase*)>
     class resource_handler
