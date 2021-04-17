@@ -295,7 +295,7 @@ namespace vra
 
     template <integral_expression_typename T>
     expression<bool>::expression(expression<T> const& other) :
-        expression(!other.equal(zero<T>))
+        expression(!other.equals(zero<T>))
     {
         update(Z3_simplify);
     }
@@ -314,9 +314,13 @@ namespace vra
         }
     }
 
-    expression<bool> expression<bool>::equal(expression const& other) const noexcept
+    expression<bool> expression<bool>::equals(expression const& other) const noexcept
     {
         return derive<bool>(Z3_mk_eq, other);
+    }
+    expression<bool> expression<bool>::implies(expression const& other) const noexcept
+    {
+        return derive<bool>(Z3_mk_implies, other);
     }
 
     expression<bool>& expression<bool>::operator&=(expression const& other) noexcept
@@ -495,12 +499,12 @@ namespace vra
     }
 
     template <integral_expression_typename T>
-    expression<bool> expression<T>::equal(expression const& other) const noexcept
+    expression<bool> expression<T>::equals(expression const& other) const noexcept
     {
         return derive<bool>(Z3_mk_eq, other);
     }
     template <integral_expression_typename T>
-    expression<bool> expression<T>::less(expression const& other) const noexcept
+    expression<bool> expression<T>::less_than(expression const& other) const noexcept
     {
         return derive<bool>(std::signed_integral<T> ? Z3_mk_bvslt : Z3_mk_bvult, other);
     }

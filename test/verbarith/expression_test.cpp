@@ -273,7 +273,7 @@ TEST_CASE("Expression: Conclusive EQ")
     auto const b = static_cast<unsigned char>(GENERATE(range(0x00, 0x08), range(0xF8, 0x100)));
     auto const c = a == b;
 
-    CHECK(expression(a).equal(expression(b)).evaluate() == c);
+    CHECK(expression(a).equals(expression(b)).evaluate() == c);
 }
 TEST_CASE("Expression: Conclusive LT")
 {
@@ -281,7 +281,7 @@ TEST_CASE("Expression: Conclusive LT")
     auto const b = static_cast<unsigned char>(GENERATE(range(0x00, 0x08), range(0xF8, 0x100)));
     auto const c = a < b;
 
-    CHECK(expression(a).less(expression(b)).evaluate() == c);
+    CHECK(expression(a).less_than(expression(b)).evaluate() == c);
 }
 
 TEST_CASE("Expression: Conclusive SLT")
@@ -290,7 +290,7 @@ TEST_CASE("Expression: Conclusive SLT")
     auto const b = static_cast<signed char>(GENERATE(range(0x00, 0x08), range(0xF8, 0x100)));
     auto const c = a < b;
 
-    CHECK(expression(a).less(expression(b)).evaluate() == c);
+    CHECK(expression(a).less_than(expression(b)).evaluate() == c);
 }
 
 TEST_CASE("Expression: Conclusive NEG")

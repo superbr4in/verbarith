@@ -136,7 +136,8 @@ namespace vra
 
         [[nodiscard]] bool evaluate() const;
 
-        [[nodiscard]] expression<bool> equal(expression const&) const noexcept;
+        [[nodiscard]] expression equals(expression const&) const noexcept;
+        [[nodiscard]] expression implies(expression const&) const noexcept;
 
         expression& operator&=(expression const&) noexcept;
         expression& operator|=(expression const&) noexcept;
@@ -194,8 +195,8 @@ namespace vra
         template <integral_expression_typename U>
         [[nodiscard]] expression<U> dereference() const noexcept;
 
-        [[nodiscard]] expression<bool> equal(expression const&) const noexcept;
-        [[nodiscard]] expression<bool> less(expression const&) const noexcept;
+        [[nodiscard]] expression<bool> equals(expression const&) const noexcept;
+        [[nodiscard]] expression<bool> less_than(expression const&) const noexcept;
 
         expression& operator++() noexcept;
         expression& operator--() noexcept;
