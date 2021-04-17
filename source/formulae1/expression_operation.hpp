@@ -2,7 +2,7 @@
 
 #include <z3.h>
 
-#include <verbarith/expression_sort.hpp>
+#include <formulae1/expression_sort.hpp>
 
 namespace vra
 {

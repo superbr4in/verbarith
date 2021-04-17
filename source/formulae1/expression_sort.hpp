@@ -2,7 +2,7 @@
 
 #include <z3.h>
 
-#include <verbarith/resource_handler.hpp>
+#include <formulae1/resource_handler.hpp>
 
 namespace vra
 {

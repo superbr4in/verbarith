@@ -3,7 +3,7 @@
 #include <memory>
 #include <unordered_set>
 
-#include <verbarith/width.hpp>
+#include <formulae1/width.hpp>
 
 // NOLINTNEXTLINE [cert-dcl51-cpp]
 struct _Z3_ast;

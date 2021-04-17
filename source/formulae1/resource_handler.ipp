@@ -1,7 +1,7 @@
 #pragma once
 
-#include <verbarith/resource_context.ipp>
-#include <verbarith/resource_handler.hpp>
+#include <formulae1/resource_context.ipp>
+#include <formulae1/resource_handler.hpp>
 
 namespace vra
 {

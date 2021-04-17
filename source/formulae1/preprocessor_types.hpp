@@ -2,8 +2,8 @@
 
 #include <cstddef>
 
-#include <verbarith/preprocessor.hpp>
-#include <verbarith/width.hpp>
+#include <formulae1/preprocessor.hpp>
+#include <formulae1/width.hpp>
 
 #define TYPE(T) TYPE_##T
 
