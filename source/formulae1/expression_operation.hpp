@@ -29,11 +29,11 @@ namespace fml
 
         [[nodiscard]] _Z3_symbol* symbol() const noexcept;
 
-        template <std::size_t RANGE_WIDTH, std::size_t... DOMAIN_WIDTHS>
-            requires (RANGE_WIDTH > 0) && (sizeof...(DOMAIN_WIDTHS) > 0) && ((DOMAIN_WIDTHS > 0) &&...)
+        template <std::size_t RANGE_SIZE, std::size_t... DOMAIN_SIZES>
+            requires (RANGE_SIZE > 0) && (sizeof...(DOMAIN_SIZES) > 0) && ((DOMAIN_SIZES > 0) &&...)
         [[nodiscard]] static expression_operation create(_Z3_symbol*) noexcept;
-        template <std::size_t RANGE_WIDTH, std::same_as<expression_sort>... DOMAIN_SORTS>
-            requires (RANGE_WIDTH > 0) && (sizeof...(DOMAIN_SORTS) > 0)
+        template <std::size_t RANGE_SIZE, std::same_as<expression_sort>... DOMAIN_SORTS>
+            requires (RANGE_SIZE > 0) && (sizeof...(DOMAIN_SORTS) > 0)
         [[nodiscard]] static expression_operation create(_Z3_symbol*, DOMAIN_SORTS const&...) noexcept;
     };
 }

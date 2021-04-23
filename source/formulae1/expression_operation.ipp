@@ -6,23 +6,23 @@
 
 namespace fml
 {
-    template <std::size_t WIDTH, std::size_t... WIDTHS, std::same_as<expression_sort>... SORTS>
-    static std::array<_Z3_sort*, sizeof...(WIDTHS) + sizeof...(SORTS) + 1> make_sorts(SORTS const&... sorts) noexcept
+    template <std::size_t SIZE, std::size_t... SIZES, std::same_as<expression_sort>... SORTS>
+    static std::array<_Z3_sort*, sizeof...(SIZES) + sizeof...(SORTS) + 1> make_sorts(SORTS const&... sorts) noexcept
     {
-        if constexpr (sizeof...(WIDTHS) == 0)
+        if constexpr (sizeof...(SIZES) == 0)
         {
-            return { sorts..., expression_sort::instance<WIDTH>() };
+            return { sorts..., expression_sort::instance<SIZE>() };
         }
         else
         {
-            return make_sorts<WIDTHS...>(sorts..., expression_sort::instance<WIDTH>());
+            return make_sorts<SIZES...>(sorts..., expression_sort::instance<SIZE>());
         }
     }
-    template <std::size_t RANGE_WIDTH, std::size_t... DOMAIN_WIDTHS>
-        requires (RANGE_WIDTH > 0) && (sizeof...(DOMAIN_WIDTHS) > 0) && ((DOMAIN_WIDTHS > 0) &&...)
+    template <std::size_t RANGE_SIZE, std::size_t... DOMAIN_SIZES>
+        requires (RANGE_SIZE > 0) && (sizeof...(DOMAIN_SIZES) > 0) && ((DOMAIN_SIZES > 0) &&...)
     expression_operation expression_operation::create(_Z3_symbol* const symbol) noexcept
     {
-        auto const domain_sorts = make_sorts<DOMAIN_WIDTHS...>();
+        auto const domain_sorts = make_sorts<DOMAIN_SIZES...>();
 
         return expression_operation(
             resource_context::apply(
@@ -30,10 +30,10 @@ namespace fml
                 symbol,
                 domain_sorts.size(),
                 domain_sorts.data(),
-                expression_sort::instance<RANGE_WIDTH>()));
+                expression_sort::instance<RANGE_SIZE>()));
     }
-    template <std::size_t RANGE_WIDTH, std::same_as<expression_sort>... DOMAIN_SORTS>
-        requires (RANGE_WIDTH > 0) && (sizeof...(DOMAIN_SORTS) > 0)
+    template <std::size_t RANGE_SIZE, std::same_as<expression_sort>... DOMAIN_SORTS>
+        requires (RANGE_SIZE > 0) && (sizeof...(DOMAIN_SORTS) > 0)
     expression_operation expression_operation::create(_Z3_symbol* const symbol, DOMAIN_SORTS const&... _domain_sorts) noexcept
     {
         std::array<_Z3_sort*, sizeof...(DOMAIN_SORTS)> const domain_sorts { _domain_sorts... };
@@ -44,6 +44,6 @@ namespace fml
                 symbol,
                 domain_sorts.size(),
                 domain_sorts.data(),
-                expression_sort::instance<RANGE_WIDTH>()));
+                expression_sort::instance<RANGE_SIZE>()));
     }
 }

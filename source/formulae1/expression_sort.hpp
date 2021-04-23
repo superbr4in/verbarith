@@ -29,8 +29,8 @@ namespace fml
 
         [[nodiscard]] static expression_sort const& boolean() noexcept;
 
-        template <std::size_t WIDTH>
-            requires (WIDTH > 0)
+        template <std::size_t SIZE>
+            requires (SIZE > 0)
         [[nodiscard]] static expression_sort const& instance() noexcept;
     };
 }

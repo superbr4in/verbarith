@@ -3,8 +3,6 @@
 #include <memory>
 #include <unordered_set>
 
-#include <formulae1/width.hpp>
-
 // NOLINTNEXTLINE [cert-dcl51-cpp]
 struct _Z3_ast;
 // NOLINTNEXTLINE [cert-dcl51-cpp]
@@ -63,14 +61,14 @@ namespace fml
         explicit expression(expression<T> const&) noexcept;
         expression(expression const&) noexcept;
         template <integral_expression_typename T>
-        expression& operator=(expression<T> const&);
+        expression& operator=(expression<T> const&) noexcept;
         expression& operator=(expression const&) noexcept;
 
         template <integral_expression_typename T>
         explicit expression(expression<T>&&) noexcept;
         expression(expression&&) noexcept;
         template <integral_expression_typename T>
-        expression& operator=(expression<T>&&);
+        expression& operator=(expression<T>&&) noexcept;
         expression& operator=(expression&&) noexcept;
 
         template <integral_expression_typename T>
@@ -94,7 +92,7 @@ namespace fml
         [[nodiscard]] _Z3_ast* base() const noexcept;
         void base(_Z3_ast*) noexcept;
 
-        [[nodiscard]] std::size_t width() const noexcept;
+        [[nodiscard]] std::size_t size() const noexcept;
 
         [[nodiscard]] std::string representation() const noexcept;
 
@@ -174,20 +172,20 @@ namespace fml
         explicit expression(expression<bool> const&) noexcept;
 
         template <integral_expression_typename U>
-            requires (widthof(U) == widthof(T))
+            requires (sizeof(U) == sizeof(T))
         explicit expression(expression<U> const&) noexcept;
         template <integral_expression_typename U>
-            requires (widthof(U) > widthof(T))
+            requires (sizeof(U) > sizeof(T))
         explicit expression(expression<U> const&) noexcept;
         template <integral_expression_typename U>
-            requires (widthof(U) < widthof(T))
+            requires (sizeof(U) < sizeof(T))
         explicit expression(expression<U> const&) noexcept;
 
         template <integral_expression_typename U>
-            requires (widthof(U) <= widthof(T))
-        [[nodiscard]] static expression join(std::array<expression<U>, widthof(T) / widthof(U)> const&) noexcept;
+            requires (sizeof(U) <= sizeof(T))
+        [[nodiscard]] static expression join(std::array<expression<U>, sizeof(T) / sizeof(U)> const&) noexcept;
         template <integral_expression_typename U, std::size_t POSITION>
-            requires (widthof(T) >= widthof(U) * (POSITION + 1))
+            requires (sizeof(T) >= sizeof(U) * (POSITION + 1))
         [[nodiscard]] expression<U> extract() const noexcept;
 
         [[nodiscard]] T evaluate() const;

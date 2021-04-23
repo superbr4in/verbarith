@@ -54,12 +54,9 @@ namespace fml
         base_(std::make_unique<resource_handler<_Z3_ast, _Z3_ast, Z3_inc_ref, Z3_dec_ref>>(other.base()))
     { }
     template <integral_expression_typename T>
-    expression<>& expression<>::operator=(expression<T> const& other)
+    expression<>& expression<>::operator=(expression<T> const& other) noexcept
     {
         static_assert(sizeof(expression<T>) == sizeof(expression));
-
-        if (widthof(T) != other.width())
-            throw std::logic_error("Invalid width");
 
         // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
         return operator=(reinterpret_cast<expression const&>(other));
@@ -81,12 +78,9 @@ namespace fml
     }
     expression<>::expression(expression&&) noexcept = default;
     template <integral_expression_typename T>
-    expression<>& expression<>::operator=(expression<T>&& other)
+    expression<>& expression<>::operator=(expression<T>&& other) noexcept
     {
         static_assert(sizeof(expression<T>) == sizeof(expression));
-
-        if (widthof(T) != other.width())
-            throw std::logic_error("Invalid width");
 
         // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
         return operator=(reinterpret_cast<expression&&>(other));
@@ -98,7 +92,7 @@ namespace fml
     {
         static_assert(sizeof(expression<T>) == sizeof(expression));
 
-        if (widthof(T) != width())
+        if (sizeof(T) != size())
             throw std::logic_error("Invalid width");
 
         // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
@@ -109,7 +103,7 @@ namespace fml
     {
         static_assert(sizeof(expression<T>) == sizeof(expression));
 
-        if (widthof(T) != width())
+        if (sizeof(T) != size())
             throw std::logic_error("Invalid width");
 
         // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
@@ -124,7 +118,7 @@ namespace fml
     template <integral_expression_typename T>
     T expression<>::evaluate() const
     {
-        if (widthof(T) != width())
+        if (sizeof(T) != size())
             throw std::logic_error("Invalid width");
 
         if (std::uint64_t value { }; resource_context::apply(Z3_get_numeral_uint64, base(), &value))
@@ -203,7 +197,7 @@ namespace fml
         expression<std::byte> const key(
             resource_context::apply(
                 Z3_mk_app,
-                expression_operation::create<widthof(std::byte)>(indirection_symbol, expression_sort(key_pointer.base())),
+                expression_operation::create<sizeof(std::byte)>(indirection_symbol, expression_sort(key_pointer.base())),
                 1,
                 &key_pointer_resource));
 
@@ -223,9 +217,9 @@ namespace fml
         base_->value(resource);
     }
 
-    std::size_t expression<>::width() const noexcept
+    std::size_t expression<>::size() const noexcept
     {
-        return resource_context::apply(Z3_get_bv_sort_size, expression_sort(base()));
+        return resource_context::apply(Z3_get_bv_sort_size, expression_sort(base())) / CHAR_BIT;
     }
 
     std::string expression<>::representation() const noexcept
@@ -381,7 +375,7 @@ namespace fml
 
     template <integral_expression_typename T>
     expression<T>::expression(T const value) noexcept :
-        expression(resource_context::apply(Z3_mk_unsigned_int64, static_cast<std::uint64_t>(value), expression_sort::instance<widthof(T)>()))
+        expression(resource_context::apply(Z3_mk_unsigned_int64, static_cast<std::uint64_t>(value), expression_sort::instance<sizeof(T)>()))
     { }
 
     template <integral_expression_typename T>
@@ -396,7 +390,7 @@ namespace fml
                 resource_context::apply(
                     Z3_mk_string_symbol,
                     symbol.c_str()),
-                expression_sort::instance<widthof(T)>()));
+                expression_sort::instance<sizeof(T)>()));
     }
 
     template <integral_expression_typename T>
@@ -408,39 +402,39 @@ namespace fml
 
     template <integral_expression_typename T>
     template <integral_expression_typename U>
-        requires (widthof(U) == widthof(T))
+        requires (sizeof(U) == sizeof(T))
     expression<T>::expression(expression<U> const& other) noexcept :
         expression(other.base())
     { }
     template <integral_expression_typename T>
     template <integral_expression_typename U>
-        requires (widthof(U) > widthof(T))
+        requires (sizeof(U) > sizeof(T))
     expression<T>::expression(expression<U> const& other) noexcept :
-        expression(resource_context::apply(Z3_mk_extract, unsigned{widthof(T) - 1}, unsigned{0}, other.base()))
+        expression(resource_context::apply(Z3_mk_extract, unsigned{sizeof(T) * CHAR_BIT - 1}, unsigned{0}, other.base()))
     {
         update(Z3_simplify);
     }
     template <integral_expression_typename T>
     template <integral_expression_typename U>
-        requires (widthof(U) < widthof(T))
+        requires (sizeof(U) < sizeof(T))
     expression<T>::expression(expression<U> const& other) noexcept :
-        expression(resource_context::apply(Z3_mk_zero_ext, unsigned{widthof(T) - widthof(U)}, other.base()))
+        expression(resource_context::apply(Z3_mk_zero_ext, unsigned{(sizeof(T) - sizeof(U)) * CHAR_BIT}, other.base()))
     {
         update(Z3_simplify);
     }
 
     template <integral_expression_typename T>
     template <integral_expression_typename U>
-        requires (widthof(U) <= widthof(T))
-    expression<T> expression<T>::join(std::array<expression<U>, widthof(T) / widthof(U)> const& parts) noexcept
+        requires (sizeof(U) <= sizeof(T))
+    expression<T> expression<T>::join(std::array<expression<U>, sizeof(T) / sizeof(U)> const& parts) noexcept
     {
-        if constexpr (widthof(U) == widthof(T))
+        if constexpr (sizeof(U) == sizeof(T))
         {
             return expression(std::get<0>(parts));
         }
         else
         {
-            auto result = concatenate<T, widthof(T) / widthof(U)>(
+            auto result = concatenate<T, sizeof(T) / sizeof(U)>(
                 [&parts]<std::size_t INDEX>()
                 {
                     return std::get<INDEX>(parts);
@@ -452,10 +446,15 @@ namespace fml
     }
     template <integral_expression_typename T>
     template <integral_expression_typename U, std::size_t POSITION>
-        requires (widthof(T) >= widthof(U) * (POSITION + 1))
+        requires (sizeof(T) >= sizeof(U) * (POSITION + 1))
     expression<U> expression<T>::extract() const noexcept
     {
-        expression<U> result(resource_context::apply(Z3_mk_extract, unsigned{(widthof(U) * (POSITION + 1)) - 1}, unsigned{widthof(U) * POSITION}, base()));
+        expression<U> result(
+            resource_context::apply(
+                Z3_mk_extract,
+                unsigned{(sizeof(U) * CHAR_BIT * (POSITION + 1)) - 1},
+                unsigned{ sizeof(U) * CHAR_BIT *  POSITION          },
+                base()));
         result.update(Z3_simplify);
 
         return result;
@@ -474,9 +473,9 @@ namespace fml
     template <integral_expression_typename U>
     expression<U> expression<T>::dereference() const noexcept
     {
-        static auto const indirection = expression_operation::create<widthof(std::byte), widthof(T)>(indirection_symbol);
+        static auto const indirection = expression_operation::create<1, sizeof(T)>(indirection_symbol);
 
-        if constexpr (widthof(U) == widthof(std::byte))
+        if constexpr (sizeof(U) == 1)
         {
             auto* const resource = base();
 
@@ -484,7 +483,7 @@ namespace fml
         }
         else
         {
-            auto result = concatenate<U, widthof(U) / widthof(std::byte)>(
+            auto result = concatenate<U, sizeof(U)>(
                 [this]<std::size_t INDEX>()
                 {
                     auto const advanced = operator+(expression(static_cast<T>(INDEX)));
@@ -737,10 +736,10 @@ LOOP_TYPES_0(INSTANTIATE_BOOLEAN_EXPRESSION);
 #define INSTANTIATE_EXPRESSION_SQUARE_INDEXED(T, U, index)\
     template fml::EXPRESSION(U) fml::EXPRESSION(T)::extract<TYPE(U), index>() const;
 #define INSTANTIATE_EXPRESSION_SQUARE(T, U)\
-    IF_NOT_EQUAL(            T, U, template                    fml::EXPRESSION(T)::expression(     EXPRESSION(U) const&));\
-    IF_TYPE_WIDTH_DIVIDABLE( T, U, template fml::EXPRESSION(T) fml::EXPRESSION(T)::join(std::array<EXPRESSION(U), TYPE_WIDTH_DIVIDE(T, U)> const&));\
-                                   template fml::EXPRESSION(U) fml::EXPRESSION(T)::dereference() const;\
-    LOOP_TYPE_WIDTH_DIVIDE_2(T, U, INSTANTIATE_EXPRESSION_SQUARE_INDEXED, T, U);
+    IF_NOT_EQUAL(           T, U, template                    fml::EXPRESSION(T)::expression(     EXPRESSION(U) const&));\
+    IF_TYPE_SIZE_DIVIDABLE( T, U, template fml::EXPRESSION(T) fml::EXPRESSION(T)::join(std::array<EXPRESSION(U), TYPE_SIZE_DIVIDE(T, U)> const&));\
+                                  template fml::EXPRESSION(U) fml::EXPRESSION(T)::dereference() const;\
+    LOOP_TYPE_SIZE_DIVIDE_2(T, U, INSTANTIATE_EXPRESSION_SQUARE_INDEXED, T, U);
 #define INSTANTIATE_EXPRESSION(T)\
     template bool            fml::operator==(EXPRESSION(T) const&, EXPRESSION(T) const&);\
     template std:: ostream&  fml::operator<<(std:: ostream      &, EXPRESSION(T) const&);\
