@@ -22,7 +22,8 @@ namespace fml
         || (std::same_as<T, std::remove_cvref_t<T>> && !std::same_as<T, bool> && std::integral<T>);
 
     template <typename, typename ResourceBase, void (_Z3_context*, ResourceBase*), void (_Z3_context*, ResourceBase*)>
-    class resource_handler;
+    class z3_resource;
+    using z3_ast = z3_resource<_Z3_ast, _Z3_ast, Z3_inc_ref, Z3_dec_ref>;
 
     template <typename = void,
         // Enables partial specializations with type constraints
@@ -30,7 +31,7 @@ namespace fml
     class expression;
 
     template <typename T>
-    bool operator==(expression<T> const&, expression<T> const&) noexcept;
+    [[nodiscard]] bool operator==(expression<T> const&, expression<T> const&) noexcept;
 
     template <typename T>
     std::ostream& operator<<(std::ostream&, expression<T> const&) noexcept;
@@ -49,9 +50,9 @@ namespace fml
         friend std::ostream& operator<< <>(std::ostream&, expression const&) noexcept;
         friend std::wostream& operator<< <>(std::wostream&, expression const&) noexcept;
 
-        std::unique_ptr<resource_handler<_Z3_ast, _Z3_ast, Z3_inc_ref, Z3_dec_ref>> base_;
+        std::unique_ptr<z3_ast> base_;
 
-        explicit expression(_Z3_ast*) noexcept;
+        explicit expression(z3_ast) noexcept;
 
     public:
 
@@ -89,25 +90,26 @@ namespace fml
 
     private:
 
-        [[nodiscard]] _Z3_ast* base() const noexcept;
-        void base(_Z3_ast*) noexcept;
-
         [[nodiscard]] std::size_t size() const noexcept;
 
         [[nodiscard]] std::string representation() const noexcept;
-
-        template <typename T, typename Applicator>
-        [[nodiscard]] expression<T> derive(Applicator&&) const noexcept;
-        template <typename T, typename U, typename Applicator>
-        [[nodiscard]] expression<T> derive(Applicator&&, expression<U> const&) const noexcept;
-
-        template <typename Applicator>
-        void update(Applicator&&) noexcept;
-        template <typename Applicator>
-        void update(Applicator&&, expression const&) noexcept;
-        template <typename Applicator>
-        void update(Applicator&&, expression const&, expression const&) noexcept;
     };
+
+    template <std::same_as<bool> T>
+    [[nodiscard]] expression<T> operator!(expression<T>) noexcept;
+
+    template <std::same_as<bool> T>
+    [[nodiscard]] expression<T> operator&(expression<T>, expression<T> const&) noexcept;
+    template <std::same_as<bool> T>
+    [[nodiscard]] expression<T> operator&(expression<T>, T) noexcept;
+    template <std::same_as<bool> T>
+    [[nodiscard]] expression<T> operator|(expression<T>, expression<T> const&) noexcept;
+    template <std::same_as<bool> T>
+    [[nodiscard]] expression<T> operator|(expression<T>, T) noexcept;
+    template <std::same_as<bool> T>
+    [[nodiscard]] expression<T> operator^(expression<T>, expression<T> const&) noexcept;
+    template <std::same_as<bool> T>
+    [[nodiscard]] expression<T> operator^(expression<T>, T) noexcept;
 
     template <>
     class expression<bool> : public expression<>
@@ -120,12 +122,18 @@ namespace fml
         friend std::ostream& operator<< <>(std::ostream&, expression const&) noexcept;
         friend std::wostream& operator<< <>(std::wostream&, expression const&) noexcept;
 
-        explicit expression(_Z3_ast*) noexcept;
+        friend expression operator! <>(expression) noexcept;
+
+        friend expression operator& <>(expression, expression const&) noexcept;
+        friend expression operator| <>(expression, expression const&) noexcept;
+        friend expression operator^ <>(expression, expression const&) noexcept;
+
+        explicit expression(z3_ast) noexcept;
 
     public:
 
-        static expression const unsatisfiable;
-        static expression const valid;
+        // NOLINTNEXTLINE [hicpp-explicit-conversions]
+        expression(bool) noexcept;
 
         [[nodiscard]] static expression symbol(std::string const& symbol);
 
@@ -140,13 +148,54 @@ namespace fml
         expression& operator&=(expression const&) noexcept;
         expression& operator|=(expression const&) noexcept;
         expression& operator^=(expression const&) noexcept;
-
-        [[nodiscard]] expression operator!() const noexcept;
-
-        [[nodiscard]] expression operator&(expression const&) const noexcept;
-        [[nodiscard]] expression operator|(expression const&) const noexcept;
-        [[nodiscard]] expression operator^(expression const&) const noexcept;
     };
+
+    template <integral_expression_typename T>
+    [[nodiscard]] expression<T> operator-(expression<T>) noexcept;
+    template <integral_expression_typename T>
+    [[nodiscard]] expression<T> operator~(expression<T>) noexcept;
+
+    template <integral_expression_typename T>
+    [[nodiscard]] expression<T> operator+(expression<T>, expression<T> const&) noexcept;
+    template <integral_expression_typename T>
+    [[nodiscard]] expression<T> operator+(expression<T>, T) noexcept;
+    template <integral_expression_typename T>
+    [[nodiscard]] expression<T> operator-(expression<T>, expression<T> const&) noexcept;
+    template <integral_expression_typename T>
+    [[nodiscard]] expression<T> operator-(expression<T>, T) noexcept;
+    template <integral_expression_typename T>
+    [[nodiscard]] expression<T> operator*(expression<T>, expression<T> const&) noexcept;
+    template <integral_expression_typename T>
+    [[nodiscard]] expression<T> operator*(expression<T>, T) noexcept;
+    template <integral_expression_typename T>
+    [[nodiscard]] expression<T> operator/(expression<T>, expression<T> const&) noexcept;
+    template <integral_expression_typename T>
+    [[nodiscard]] expression<T> operator/(expression<T>, T) noexcept;
+    template <integral_expression_typename T>
+    [[nodiscard]] expression<T> operator%(expression<T>, expression<T> const&) noexcept;
+    template <integral_expression_typename T>
+    [[nodiscard]] expression<T> operator%(expression<T>, T) noexcept;
+    template <integral_expression_typename T>
+    [[nodiscard]] expression<T> operator&(expression<T>, expression<T> const&) noexcept;
+    template <integral_expression_typename T>
+    [[nodiscard]] expression<T> operator&(expression<T>, T) noexcept;
+    template <integral_expression_typename T>
+    [[nodiscard]] expression<T> operator|(expression<T>, expression<T> const&) noexcept;
+    template <integral_expression_typename T>
+    [[nodiscard]] expression<T> operator|(expression<T>, T) noexcept;
+    template <integral_expression_typename T>
+    [[nodiscard]] expression<T> operator^(expression<T>, expression<T> const&) noexcept;
+    template <integral_expression_typename T>
+    [[nodiscard]] expression<T> operator^(expression<T>, T) noexcept;
+
+    template <integral_expression_typename T>
+    [[nodiscard]] expression<T> operator<<(expression<T>, expression<T> const&) noexcept;
+    template <integral_expression_typename T>
+    [[nodiscard]] expression<T> operator<<(expression<T>, T) noexcept;
+    template <integral_expression_typename T>
+    [[nodiscard]] expression<T> operator>>(expression<T>, expression<T> const&) noexcept;
+    template <integral_expression_typename T>
+    [[nodiscard]] expression<T> operator>>(expression<T>, T) noexcept;
 
     template <integral_expression_typename T>
     class expression<T> : public expression<>
@@ -159,8 +208,22 @@ namespace fml
         friend std::ostream& operator<< <>(std::ostream&, expression const&) noexcept;
         friend std::wostream& operator<< <>(std::wostream&, expression const&) noexcept;
 
-        template <typename = void>
-        explicit expression(_Z3_ast*) noexcept;
+        friend expression operator- <>(expression) noexcept;
+        friend expression operator~ <>(expression) noexcept;
+
+        friend expression operator+ <>(expression, expression const&) noexcept;
+        friend expression operator- <>(expression, expression const&) noexcept;
+        friend expression operator* <>(expression, expression const&) noexcept;
+        friend expression operator/ <>(expression, expression const&) noexcept;
+        friend expression operator% <>(expression, expression const&) noexcept;
+        friend expression operator& <>(expression, expression const&) noexcept;
+        friend expression operator| <>(expression, expression const&) noexcept;
+        friend expression operator^ <>(expression, expression const&) noexcept;
+
+        friend expression operator<< <>(expression, expression const&) noexcept;
+        friend expression operator>> <>(expression, expression const&) noexcept;
+
+        explicit expression(z3_ast) noexcept;
 
     public:
 
@@ -199,30 +262,17 @@ namespace fml
         expression& operator++() noexcept;
         expression& operator--() noexcept;
 
-        expression& operator +=(expression const&) noexcept;
-        expression& operator -=(expression const&) noexcept;
-        expression& operator *=(expression const&) noexcept;
-        expression& operator /=(expression const&) noexcept;
-        expression& operator %=(expression const&) noexcept;
-        expression& operator &=(expression const&) noexcept;
-        expression& operator |=(expression const&) noexcept;
-        expression& operator ^=(expression const&) noexcept;
+        expression& operator+=(expression const&) noexcept;
+        expression& operator-=(expression const&) noexcept;
+        expression& operator*=(expression const&) noexcept;
+        expression& operator/=(expression const&) noexcept;
+        expression& operator%=(expression const&) noexcept;
+        expression& operator&=(expression const&) noexcept;
+        expression& operator|=(expression const&) noexcept;
+        expression& operator^=(expression const&) noexcept;
+
         expression& operator<<=(expression const&) noexcept;
         expression& operator>>=(expression const&) noexcept;
-
-        [[nodiscard]] expression operator-() const noexcept;
-        [[nodiscard]] expression operator~() const noexcept;
-
-        [[nodiscard]] expression operator +(expression const&) const noexcept;
-        [[nodiscard]] expression operator -(expression const&) const noexcept;
-        [[nodiscard]] expression operator *(expression const&) const noexcept;
-        [[nodiscard]] expression operator /(expression const&) const noexcept;
-        [[nodiscard]] expression operator %(expression const&) const noexcept;
-        [[nodiscard]] expression operator &(expression const&) const noexcept;
-        [[nodiscard]] expression operator |(expression const&) const noexcept;
-        [[nodiscard]] expression operator ^(expression const&) const noexcept;
-        [[nodiscard]] expression operator<<(expression const&) const noexcept;
-        [[nodiscard]] expression operator>>(expression const&) const noexcept;
 
     private:
 
