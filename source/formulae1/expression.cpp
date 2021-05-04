@@ -8,8 +8,11 @@
 
 namespace fml
 {
+    using z3_apply_result = z3_resource<_Z3_apply_result, _Z3_apply_result, Z3_apply_result_inc_ref, Z3_apply_result_dec_ref>;
     using z3_func_decl = z3_resource<_Z3_func_decl, _Z3_ast, Z3_inc_ref, Z3_dec_ref>;
+    using z3_goal = z3_resource<_Z3_goal, _Z3_goal, Z3_goal_inc_ref, Z3_goal_dec_ref>;
     using z3_sort = z3_resource<_Z3_sort, _Z3_ast, Z3_inc_ref, Z3_dec_ref>;
+    using z3_tactic = z3_resource<_Z3_tactic, _Z3_tactic, Z3_tactic_inc_ref, Z3_tactic_dec_ref>;
 
     // NOLINTNEXTLINE [cppcoreguidelines-avoid-non-const-global-variables]
     static _Z3_symbol* const indirection_symbol = z3_resource_context::apply(Z3_mk_string_symbol, "deref");
@@ -319,6 +322,27 @@ namespace fml
         default:
             throw std::logic_error("Inconclusive evaluation");
         }
+    }
+
+    void expression<bool>::reduce()
+    {
+        z3_goal reduction_goal(Z3_mk_goal, false, false, false);
+        reduction_goal.apply(Z3_goal_assert, *base_);
+        reduction_goal.update_2(
+            Z3_apply_result_get_subgoal,
+            z3_apply_result(Z3_tactic_apply, z3_tactic(Z3_mk_tactic, "ctx-simplify"), reduction_goal),
+            0);
+
+        base_->update_2(Z3_mk_true);
+        auto const reduction_goal_size = reduction_goal.apply(Z3_goal_size);
+        for (auto index = 0U; index < reduction_goal_size; ++index)
+        {
+            z3_ast formula(Z3_goal_formula, reduction_goal, index);
+
+            std::array<_Z3_ast*, 2> const arguments { *base_, formula };
+            base_->update_2(Z3_mk_and, arguments.size(), arguments.data());
+        }
+        base_->update(Z3_simplify);
     }
 
     expression<bool> expression<bool>::equals(expression const& other) const noexcept

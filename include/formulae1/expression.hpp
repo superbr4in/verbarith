@@ -142,6 +142,8 @@ namespace fml
 
         [[nodiscard]] bool evaluate() const;
 
+        void reduce();
+
         [[nodiscard]] expression equals(expression const&) const noexcept;
         [[nodiscard]] expression implies(expression const&) const noexcept;
 
