@@ -40,6 +40,11 @@ namespace fml
     }
 
     template <typename Value, typename ValueBase, void INC(_Z3_context*, ValueBase*), void DEC(_Z3_context*, ValueBase*)>
+    z3_resource<Value, ValueBase, INC, DEC>::z3_resource(Value* const base) noexcept :
+        base_(base)
+    { }
+
+    template <typename Value, typename ValueBase, void INC(_Z3_context*, ValueBase*), void DEC(_Z3_context*, ValueBase*)>
     template <typename... Arguments, std::invocable<_Z3_context*, Arguments...> Applicator>
         requires std::same_as<std::invoke_result_t<Applicator, _Z3_context*, Arguments...>, Value*>
     z3_resource<Value, ValueBase, INC, DEC>::z3_resource(Applicator&& applicator, Arguments&&... arguments) noexcept :

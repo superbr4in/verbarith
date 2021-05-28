@@ -1,6 +1,6 @@
 #pragma once
 
-#include <formulae1/expression.hpp>
+#include <formulae1/expression_model.hpp>
 
 // NOLINTNEXTLINE [cert-dcl51-cpp]
 struct _Z3_solver;
@@ -31,6 +31,6 @@ namespace fml
         expression_solver(expression_solver&&) noexcept;
         expression_solver& operator=(expression_solver&&) noexcept;
 
-        [[nodiscard]] bool check(expression<bool> const&) const;
+        [[nodiscard]] std::optional<expression_model> check(expression<bool> const&) const;
     };
 }

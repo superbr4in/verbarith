@@ -27,6 +27,8 @@ namespace fml
 
     public:
 
+        explicit z3_resource(Value*) noexcept;
+
         template <typename... Arguments, std::invocable<_Z3_context*, Arguments...> Applicator>
             requires std::same_as<std::invoke_result_t<Applicator, _Z3_context*, Arguments...>, Value*>
         explicit z3_resource(Applicator&&, Arguments&&...) noexcept;

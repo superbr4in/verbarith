@@ -24,16 +24,16 @@ namespace fml
     expression_solver::expression_solver(expression_solver&&) noexcept = default;
     expression_solver& expression_solver::operator=(expression_solver&&) noexcept = default;
 
-    bool expression_solver::check(expression<bool> const& value) const
+    std::optional<expression_model> expression_solver::check(expression<bool> const& value) const
     {
         auto* const value_resource = static_cast<_Z3_ast*>(*value.base_);
 
         switch (base_->apply(Z3_solver_check_assumptions, 1, &value_resource))
         {
         case Z3_L_FALSE:
-            return false;
+            return std::nullopt;
         case Z3_L_TRUE:
-            return true;
+            return expression_model(z3_model(base_->apply(Z3_solver_get_model)));
 
         default:
             throw std::logic_error("Invalid expression");
