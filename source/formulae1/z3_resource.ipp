@@ -1,7 +1,7 @@
 #pragma once
 
-#include <formulae1/z3_resource.hpp>
-#include <formulae1/z3_resource_context.ipp>
+#include "z3_resource.hpp"
+#include "z3_resource_context.ipp"
 
 namespace fml
 {

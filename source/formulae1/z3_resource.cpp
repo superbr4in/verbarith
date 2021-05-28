@@ -1,1 +1,1 @@
-#include <formulae1/z3_resource.hpp>
+#include "z3_resource.hpp"

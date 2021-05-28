@@ -1,4 +1,4 @@
-#include <formulae1/z3_resource_context.hpp>
+#include "z3_resource_context.hpp"
 
 namespace fml
 {

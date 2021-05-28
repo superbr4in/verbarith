@@ -3,8 +3,9 @@
 #include <regex>
 
 #include <formulae1/expression.hpp>
-#include <formulae1/preprocessor_types.hpp>
-#include <formulae1/z3_resource.ipp>
+
+#include "preprocessor_types.hpp"
+#include "z3_resource.ipp"
 
 namespace fml
 {

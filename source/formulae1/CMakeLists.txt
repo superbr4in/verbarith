@@ -8,9 +8,7 @@ add_library(formulae1
 
 target_include_directories(formulae1
   PUBLIC
-    ${PROJECT_SOURCE_DIR}/include
-  PRIVATE
-    ${PROJECT_SOURCE_DIR}/source)
+    ${PROJECT_SOURCE_DIR}/include)
 
 target_link_libraries(formulae1
   PRIVATE

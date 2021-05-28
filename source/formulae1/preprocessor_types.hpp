@@ -3,7 +3,7 @@
 #include <concepts>
 #include <cstddef>
 
-#include <formulae1/preprocessor.hpp>
+#include "preprocessor.hpp"
 
 #define TYPE(T) TYPE_##T
 
