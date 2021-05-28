@@ -10,6 +10,7 @@
 namespace fml
 {
     using z3_apply_result = z3_resource<_Z3_apply_result, _Z3_apply_result, Z3_apply_result_inc_ref, Z3_apply_result_dec_ref>;
+    using z3_ast_vector = z3_resource<_Z3_ast_vector, _Z3_ast_vector, Z3_ast_vector_inc_ref, Z3_ast_vector_dec_ref>;
     using z3_func_decl = z3_resource<_Z3_func_decl, _Z3_ast, Z3_inc_ref, Z3_dec_ref>;
     using z3_goal = z3_resource<_Z3_goal, _Z3_goal, Z3_goal_inc_ref, Z3_goal_dec_ref>;
     using z3_sort = z3_resource<_Z3_sort, _Z3_ast, Z3_inc_ref, Z3_dec_ref>;
@@ -22,6 +23,29 @@ namespace fml
     static expression<T> const zero(static_cast<T>(0));
     template <integral_expression_typename T>
     static expression<T> const one(static_cast<T>(1));
+
+    template <typename T>
+    expression<T> parse_expression(std::string const& string)
+    {
+        // TODO: Reset error handler
+        z3_ast_vector parsed_string(Z3_parse_smtlib2_string, string.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
+        if (parsed_string.apply(Z3_ast_vector_size) != 1)
+            throw std::invalid_argument("Parsing error");
+
+        z3_ast ast(Z3_ast_vector_get, parsed_string, 0);
+        if constexpr (std::same_as<T, bool>)
+        {
+            if (z3_sort(Z3_get_sort, ast).apply(Z3_get_sort_kind) != Z3_BOOL_SORT)
+                throw std::invalid_argument("Parsing error");
+        }
+        else if constexpr (!std::same_as<T, void>)
+        {
+            if (z3_sort(Z3_get_sort, ast).apply(Z3_get_bv_sort_size) / CHAR_BIT != sizeof(T))
+                throw std::invalid_argument("Parsing error");
+        }
+
+        return expression<T>(std::move(ast));
+    }
 
     template <typename T>
     bool operator==(expression<T> const& expression_1, expression<T> const& expression_2) noexcept
@@ -792,9 +816,10 @@ namespace std // NOLINT [cert-dcl58-cpp]
 
 #define EXPRESSION(T) expression<TYPE(T)>
 
-template bool           fml::operator==(expression<> const&, expression<> const&);
-template std::ostream&  fml::operator<<(std::ostream      &, expression<> const&);
-template std::wostream& fml::operator<<(std::wostream     &, expression<> const&);
+template fml::expression<> fml::parse_expression(std::string const&);
+template bool              fml::operator==(expression<> const&, expression<> const&);
+template std::ostream&     fml::operator<<(std::ostream      &, expression<> const&);
+template std::wostream&    fml::operator<<(std::wostream     &, expression<> const&);
 
 #define INSTANTIATE_ANONYMOUS_EXPRESSION(T)\
     template                           fml::expression<>::expression(EXPRESSION(T) const&);\
@@ -806,6 +831,7 @@ template std::wostream& fml::operator<<(std::wostream     &, expression<> const&
     template            TYPE(T)        fml::expression<>::evaluate() const;
 LOOP_TYPES_0(INSTANTIATE_ANONYMOUS_EXPRESSION);
 
+template fml::expression<bool> fml::parse_expression(std::string const&);
 template bool                  fml::operator==(expression<bool> const&, expression<bool> const&);
 template std:: ostream&        fml::operator<<(std:: ostream         &, expression<bool> const&);
 template std::wostream&        fml::operator<<(std::wostream         &, expression<bool> const&);
@@ -829,6 +855,7 @@ LOOP_TYPES_0(INSTANTIATE_BOOLEAN_EXPRESSION);
                                   template fml::EXPRESSION(U) fml::EXPRESSION(T)::dereference() const;\
     LOOP_TYPE_SIZE_DIVIDE_2(T, U, INSTANTIATE_EXPRESSION_SQUARE_INDEXED, T, U);
 #define INSTANTIATE_EXPRESSION(T)\
+    template fml::EXPRESSION(T) fml::parse_expression(std::string const&);\
     template bool               fml::operator==(EXPRESSION(T) const&, EXPRESSION(T) const&);\
     template std:: ostream&     fml::operator<<(std:: ostream      &, EXPRESSION(T) const&);\
     template std::wostream&     fml::operator<<(std::wostream      &, EXPRESSION(T) const&);\

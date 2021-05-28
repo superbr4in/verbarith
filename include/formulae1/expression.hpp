@@ -30,6 +30,9 @@ namespace fml
         typename = void>
     class expression;
 
+    template <typename T = void>
+    [[nodiscard]] expression<T> parse_expression(std::string const&);
+
     template <typename T>
     [[nodiscard]] bool operator==(expression<T> const&, expression<T> const&) noexcept;
 
@@ -44,6 +47,8 @@ namespace fml
         template <typename, typename>
         friend class expression;
         friend struct std::hash<expression>;
+
+        friend expression parse_expression <>(std::string const&);
 
         friend bool operator== <>(expression const&, expression const&) noexcept;
 
@@ -116,6 +121,8 @@ namespace fml
     {
         template <typename, typename>
         friend class expression;
+
+        friend expression parse_expression <>(std::string const&);
 
         friend bool operator== <>(expression const&, expression const&) noexcept;
 
@@ -204,6 +211,8 @@ namespace fml
     {
         template <typename, typename>
         friend class expression;
+
+        friend expression parse_expression <>(std::string const&);
 
         friend bool operator== <>(expression const&, expression const&) noexcept;
 
