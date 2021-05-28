@@ -8,6 +8,9 @@ namespace fml
 {
     class z3_resource_context
     {
+        template <typename, typename ValueBase, void (_Z3_context*, ValueBase*), void (_Z3_context*, ValueBase*)>
+        friend class z3_resource;
+
         _Z3_context* base_;
 
         z3_resource_context() noexcept;
@@ -22,8 +25,8 @@ namespace fml
         z3_resource_context(z3_resource_context&&) = delete;
         z3_resource_context& operator=(z3_resource_context&&) = delete;
 
-        template <typename... Arguments, std::invocable<_Z3_context*, Arguments...> Applicator>
-        [[nodiscard]] static std::invoke_result_t<Applicator, _Z3_context*, Arguments...> apply(Applicator&&, Arguments&&...) noexcept;
+        // NOLINTNEXTLINE [hicpp-explicit-conversions]
+        [[nodiscard]] operator _Z3_context*() const noexcept;
 
     private:
 

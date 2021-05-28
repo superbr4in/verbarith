@@ -9,15 +9,16 @@
 
 namespace fml
 {
+    using z3_app = z3_resource<_Z3_app, _Z3_app, nullptr, nullptr>;
     using z3_apply_result = z3_resource<_Z3_apply_result, _Z3_apply_result, Z3_apply_result_inc_ref, Z3_apply_result_dec_ref>;
     using z3_ast_vector = z3_resource<_Z3_ast_vector, _Z3_ast_vector, Z3_ast_vector_inc_ref, Z3_ast_vector_dec_ref>;
     using z3_func_decl = z3_resource<_Z3_func_decl, _Z3_ast, Z3_inc_ref, Z3_dec_ref>;
     using z3_goal = z3_resource<_Z3_goal, _Z3_goal, Z3_goal_inc_ref, Z3_goal_dec_ref>;
     using z3_sort = z3_resource<_Z3_sort, _Z3_ast, Z3_inc_ref, Z3_dec_ref>;
+    using z3_symbol = z3_resource<_Z3_symbol, _Z3_symbol, nullptr, nullptr>;
     using z3_tactic = z3_resource<_Z3_tactic, _Z3_tactic, Z3_tactic_inc_ref, Z3_tactic_dec_ref>;
 
-    // NOLINTNEXTLINE [cppcoreguidelines-avoid-non-const-global-variables]
-    static _Z3_symbol* const indirection_symbol = z3_resource_context::apply(Z3_mk_string_symbol, "deref");
+    static z3_symbol const indirection_symbol(Z3_mk_string_symbol, "deref");
 
     template <integral_expression_typename T>
     static expression<T> const zero(static_cast<T>(0));
@@ -161,14 +162,13 @@ namespace fml
 
     std::unordered_set<std::string> expression<>::dependencies() const noexcept
     {
-        // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
-        auto* const base_application = reinterpret_cast<_Z3_app*>(static_cast<_Z3_ast*>(*base_));
+        z3_app base_application(Z3_to_app, *base_);
 
-        auto const argument_count = z3_resource_context::apply(Z3_get_app_num_args, base_application);
+        auto const argument_count = base_application.apply(Z3_get_app_num_args);
         if (argument_count == 0 && !conclusive())
         {
             // Dependency by itself
-            return { z3_resource_context::apply(Z3_get_symbol_string, z3_func_decl(Z3_get_app_decl, base_application).apply(Z3_get_decl_name)) };
+            return { z3_symbol(Z3_get_decl_name, z3_func_decl(Z3_get_app_decl, base_application)).apply(Z3_get_symbol_string) };
         }
 
         std::unordered_set<std::string> dependencies;
@@ -184,10 +184,9 @@ namespace fml
     }
     std::unordered_set<expression<>> expression<>::dependencies_indirect() const noexcept
     {
-        // NOLINTNEXTLINE [cppcoreguidelines-pro-type-reinterpret-cast]
-        auto* const base_application = reinterpret_cast<_Z3_app*>(static_cast<_Z3_ast*>(*base_));
+        z3_app base_application(Z3_to_app, *base_);
 
-        auto const argument_count = z3_resource_context::apply(Z3_get_app_num_args, base_application);
+        auto const argument_count = base_application.apply(Z3_get_app_num_args);
         if (argument_count == 1 && z3_func_decl(Z3_get_app_decl, base_application).apply(Z3_get_decl_name) == indirection_symbol)
         {
             // Dependency by itself
@@ -211,7 +210,7 @@ namespace fml
         expression const key(
             z3_ast(
                 Z3_mk_const,
-                z3_resource_context::apply(
+                z3_symbol(
                     Z3_mk_string_symbol,
                     key_symbol.c_str()),
                 z3_sort(Z3_get_sort, *value.base_)));
@@ -322,7 +321,7 @@ namespace fml
         return expression(
             z3_ast(
                 Z3_mk_const,
-                z3_resource_context::apply(
+                z3_symbol(
                     Z3_mk_string_symbol,
                     symbol.c_str()),
                 z3_sort(Z3_mk_bool_sort)));
@@ -547,7 +546,7 @@ namespace fml
         return expression(
             z3_ast(
                 Z3_mk_const,
-                z3_resource_context::apply(
+                z3_symbol(
                     Z3_mk_string_symbol,
                     symbol.c_str()),
                 z3_sort(Z3_mk_bv_sort, sizeof(T) * CHAR_BIT)));

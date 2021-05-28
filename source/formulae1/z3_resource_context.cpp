@@ -11,6 +11,11 @@ namespace fml
         Z3_del_context(base_);
     }
 
+    z3_resource_context::operator _Z3_context*() const noexcept
+    {
+        return base_;
+    }
+
     z3_resource_context const& z3_resource_context::instance() noexcept
     {
         static z3_resource_context const context;
