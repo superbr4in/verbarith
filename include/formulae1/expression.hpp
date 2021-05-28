@@ -46,6 +46,8 @@ namespace fml
     {
         template <typename, typename>
         friend class expression;
+        friend class expression_solver;
+
         friend struct std::hash<expression>;
 
         friend expression parse_expression <>(std::string const&);
