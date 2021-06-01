@@ -30,16 +30,10 @@ namespace fml
     template <typename T>
     expression<T> expression_model::apply(expression<T> const& value) const
     {
-        _Z3_ast* application_resource { };
-        switch (base_->apply(Z3_model_eval, *value.base_, false, &application_resource))
-        {
-        case Z3_L_FALSE:
-        case Z3_L_TRUE:
+        if (_Z3_ast* application_resource { }; base_->apply(Z3_model_eval, *value.base_, false, &application_resource))
             return expression<T>(z3_ast(application_resource));
 
-        default:
-            throw std::logic_error("Invalid expression");
-        }
+        throw std::logic_error("Invalid expression");
     }
 
     std::ostream& operator<<(std::ostream& stream, expression_model const& model) noexcept

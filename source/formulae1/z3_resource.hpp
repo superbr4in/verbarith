@@ -21,7 +21,7 @@ namespace fml
             { std::invoke(std::forward<Function>(function), std::forward<Arguments>(arguments)...) } -> std::same_as<Result>;
         };
 
-    template <typename Value, typename ValueBase, void (_Z3_context*, ValueBase*), void (_Z3_context*, ValueBase*)>
+    template <typename Value, typename ValueBase = void, void (_Z3_context*, ValueBase*) = nullptr, void (_Z3_context*, ValueBase*) = nullptr>
     class z3_resource
     {
         struct deleter
@@ -54,6 +54,29 @@ namespace fml
 
         z3_resource(z3_resource&&) noexcept = default;
         z3_resource& operator=(z3_resource&&) noexcept = default;
+
+        // NOLINTNEXTLINE [hicpp-explicit-conversions]
+        [[nodiscard]] operator Value*() const noexcept;
+
+        template <typename... Arguments, invocable<_Z3_context*, Value*, Arguments...> Applicator>
+        [[nodiscard]] std::invoke_result_t<Applicator, _Z3_context*, Value*, Arguments...> apply(Applicator&&, Arguments&&...) noexcept;
+
+        template <typename... Arguments, invocable_result<Value*, _Z3_context*, Arguments...> Applicator>
+        void update_2(Applicator&&, Arguments&&...) noexcept;
+        template <typename... Arguments, invocable_result<Value*, _Z3_context*, Value*, Arguments...> Applicator>
+        void update(Applicator&&, Arguments&&...) noexcept;
+    };
+    template <typename Value>
+    class z3_resource<Value, void, nullptr, nullptr>
+    {
+        Value* base_;
+
+    public:
+
+        explicit z3_resource(Value*) noexcept;
+
+        template <typename... Arguments, invocable_result<Value*, _Z3_context*, Arguments...> Applicator>
+        explicit z3_resource(Applicator&&, Arguments&&...) noexcept;
 
         // NOLINTNEXTLINE [hicpp-explicit-conversions]
         [[nodiscard]] operator Value*() const noexcept;

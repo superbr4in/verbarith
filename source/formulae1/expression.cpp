@@ -11,13 +11,13 @@
 
 namespace fml
 {
-    using z3_app = z3_resource<_Z3_app, _Z3_app, nullptr, nullptr>;
+    using z3_app = z3_resource<_Z3_app>;
     using z3_apply_result = z3_resource<_Z3_apply_result, _Z3_apply_result, Z3_apply_result_inc_ref, Z3_apply_result_dec_ref>;
     using z3_ast_vector = z3_resource<_Z3_ast_vector, _Z3_ast_vector, Z3_ast_vector_inc_ref, Z3_ast_vector_dec_ref>;
     using z3_func_decl = z3_resource<_Z3_func_decl, _Z3_ast, Z3_inc_ref, Z3_dec_ref>;
     using z3_goal = z3_resource<_Z3_goal, _Z3_goal, Z3_goal_inc_ref, Z3_goal_dec_ref>;
     using z3_sort = z3_resource<_Z3_sort, _Z3_ast, Z3_inc_ref, Z3_dec_ref>;
-    using z3_symbol = z3_resource<_Z3_symbol, _Z3_symbol, nullptr, nullptr>;
+    using z3_symbol = z3_resource<_Z3_symbol>;
     using z3_tactic = z3_resource<_Z3_tactic, _Z3_tactic, Z3_tactic_inc_ref, Z3_tactic_dec_ref>;
 
     static z3_symbol const indirection_symbol(Z3_mk_string_symbol, "deref");
@@ -48,12 +48,6 @@ namespace fml
         }
 
         return expression<T>(std::move(ast));
-    }
-
-    template <typename T>
-    bool operator==(expression<T> const& expression_1, expression<T> const& expression_2) noexcept
-    {
-        return expression_1.base_->apply(Z3_is_eq_ast, *expression_2.base_);
     }
 
     template <typename T>
@@ -145,9 +139,24 @@ namespace fml
         return reinterpret_cast<expression<T>&>(*this);
     }
 
+    bool expression<>::operator==(expression const& other) const noexcept
+    {
+        return base_->apply(Z3_is_eq_ast, *other.base_);
+    }
+
     bool expression<>::conclusive() const noexcept
     {
         return base_->apply(Z3_is_numeral_ast);
+    }
+
+    std::string expression<>::representation() const noexcept
+    {
+        std::string string(base_->apply(Z3_ast_to_string));
+
+        // Remove line breaks
+        string = std::regex_replace(string, std::regex(R"(\n *)"), " ");
+
+        return string;
     }
 
     template <integral_expression_typename T>
@@ -256,56 +265,6 @@ namespace fml
         return z3_sort(Z3_get_sort, *base_).apply(Z3_get_bv_sort_size) / CHAR_BIT;
     }
 
-    std::string expression<>::representation() const noexcept
-    {
-        std::string string(base_->apply(Z3_ast_to_string));
-
-        // Remove line breaks
-        string = std::regex_replace(string, std::regex(R"(\n *)"), " ");
-
-        return string;
-    }
-
-    template <std::same_as<bool> T>
-    expression<T> operator!(expression<T> value) noexcept
-    {
-        value.base_->update(Z3_mk_not);
-        value.base_->update(Z3_simplify);
-
-        return value;
-    }
-
-    template <std::same_as<bool> T>
-    expression<T> operator&(expression<T> value_1, expression<T> const& value_2) noexcept
-    {
-        return value_1 &= value_2;
-    }
-    template <std::same_as<bool> T>
-    expression<T> operator&(expression<T> value_1, T const value_2) noexcept
-    {
-        return value_1 &= value_2;
-    }
-    template <std::same_as<bool> T>
-    expression<T> operator|(expression<T> value_1, expression<T> const& value_2) noexcept
-    {
-        return value_1 |= value_2;
-    }
-    template <std::same_as<bool> T>
-    expression<T> operator|(expression<T> value_1, T const value_2) noexcept
-    {
-        return value_1 |= value_2;
-    }
-    template <std::same_as<bool> T>
-    expression<T> operator^(expression<T> value_1, expression<T> const& value_2) noexcept
-    {
-        return value_1 ^= value_2;
-    }
-    template <std::same_as<bool> T>
-    expression<T> operator^(expression<T> value_1, T const value_2) noexcept
-    {
-        return value_1 ^= value_2;
-    }
-
     expression<bool>::expression(z3_ast base) noexcept :
         expression<>(std::move(base))
     { }
@@ -371,6 +330,15 @@ namespace fml
         base_->update(Z3_simplify);
     }
 
+    expression<bool> expression<bool>::operator!() const noexcept
+    {
+        auto copy = *this;
+        copy.base_->update(Z3_mk_not);
+        copy.base_->update(Z3_simplify);
+
+        return copy;
+    }
+
     expression<bool> expression<bool>::equals(expression const& other) const noexcept
     {
         z3_ast derived(Z3_mk_eq, *base_, *other.base_);
@@ -410,123 +378,36 @@ namespace fml
         return *this;
     }
 
-    template <integral_expression_typename T>
-    expression<T> operator-(expression<T> value) noexcept
-    {
-        value.base_->update(Z3_mk_bvneg);
-        value.base_->update(Z3_simplify);
-
-        return value;
-    }
-    template <integral_expression_typename T>
-    expression<T> operator~(expression<T> value) noexcept
-    {
-        value.base_->update(Z3_mk_bvnot);
-        value.base_->update(Z3_simplify);
-
-        return value;
-    }
-
-    template <integral_expression_typename T>
-    expression<T> operator+(expression<T> value_1, expression<T> const& value_2) noexcept
-    {
-        return value_1 += value_2;
-    }
-    template <integral_expression_typename T>
-    expression<T> operator+(expression<T> value_1, T const value_2) noexcept
-    {
-        return value_1 += value_2;
-    }
-    template <integral_expression_typename T>
-    expression<T> operator-(expression<T> value_1, expression<T> const& value_2) noexcept
-    {
-        return value_1 -= value_2;
-    }
-    template <integral_expression_typename T>
-    expression<T> operator-(expression<T> value_1, T const value_2) noexcept
-    {
-        return value_1 -= value_2;
-    }
-    template <integral_expression_typename T>
-    expression<T> operator*(expression<T> value_1, expression<T> const& value_2) noexcept
-    {
-        return value_1 *= value_2;
-    }
-    template <integral_expression_typename T>
-    expression<T> operator*(expression<T> value_1, T const value_2) noexcept
-    {
-        return value_1 *= value_2;
-    }
-    template <integral_expression_typename T>
-    expression<T> operator/(expression<T> value_1, expression<T> const& value_2) noexcept
-    {
-        return value_1 /= value_2;
-    }
-    template <integral_expression_typename T>
-    expression<T> operator/(expression<T> value_1, T const value_2) noexcept
-    {
-        return value_1 /= value_2;
-    }
-    template <integral_expression_typename T>
-    expression<T> operator%(expression<T> value_1, expression<T> const& value_2) noexcept
-    {
-        return value_1 %= value_2;
-    }
-    template <integral_expression_typename T>
-    expression<T> operator%(expression<T> value_1, T const value_2) noexcept
-    {
-        return value_1 %= value_2;
-    }
-    template <integral_expression_typename T>
-    expression<T> operator&(expression<T> value_1, expression<T> const& value_2) noexcept
+    expression<bool> operator&(expression<bool> value_1, expression<bool> const& value_2) noexcept
     {
         return value_1 &= value_2;
     }
-    template <integral_expression_typename T>
-    expression<T> operator&(expression<T> value_1, T const value_2) noexcept
-    {
-        return value_1 &= value_2;
-    }
-    template <integral_expression_typename T>
-    expression<T> operator|(expression<T> value_1, expression<T> const& value_2) noexcept
+    expression<bool> operator|(expression<bool> value_1, expression<bool> const& value_2) noexcept
     {
         return value_1 |= value_2;
     }
-    template <integral_expression_typename T>
-    expression<T> operator|(expression<T> value_1, T const value_2) noexcept
-    {
-        return value_1 |= value_2;
-    }
-    template <integral_expression_typename T>
-    expression<T> operator^(expression<T> value_1, expression<T> const& value_2) noexcept
-    {
-        return value_1 ^= value_2;
-    }
-    template <integral_expression_typename T>
-    expression<T> operator^(expression<T> value_1, T const value_2) noexcept
+    expression<bool> operator^(expression<bool> value_1, expression<bool> const& value_2) noexcept
     {
         return value_1 ^= value_2;
     }
 
     template <integral_expression_typename T>
-    expression<T> operator<<(expression<T> value_1, expression<T> const& value_2) noexcept
+    expression<T> expression<T>::operator-() const noexcept
     {
-        return value_1 <<= value_2;
+        auto copy = *this;
+        copy.base_->update(Z3_mk_bvneg);
+        copy.base_->update(Z3_simplify);
+
+        return copy;
     }
     template <integral_expression_typename T>
-    expression<T> operator<<(expression<T> value_1, T const value_2) noexcept
+    expression<T> expression<T>::operator~() const noexcept
     {
-        return value_1 <<= value_2;
-    }
-    template <integral_expression_typename T>
-    expression<T> operator>>(expression<T> value_1, expression<T> const& value_2) noexcept
-    {
-        return value_1 >>= value_2;
-    }
-    template <integral_expression_typename T>
-    expression<T> operator>>(expression<T> value_1, T const value_2) noexcept
-    {
-        return value_1 >>= value_2;
+        auto copy = *this;
+        copy.base_->update(Z3_mk_bvnot);
+        copy.base_->update(Z3_simplify);
+
+        return copy;
     }
 
     template <integral_expression_typename T>
@@ -790,6 +671,108 @@ namespace fml
             return expression<U>(z3_ast(Z3_mk_concat, *current.base_, *previous.base_));
         }
     }
+
+    template <integral_expression_typename T>
+    expression<T> operator+(expression<T> value_1, expression<T> const& value_2) noexcept
+    {
+        return value_1 += value_2;
+    }
+    template <integral_expression_typename T>
+    expression<T> operator+(expression<T> value_1, T const value_2) noexcept
+    {
+        return value_1 += value_2;
+    }
+    template <integral_expression_typename T>
+    expression<T> operator-(expression<T> value_1, expression<T> const& value_2) noexcept
+    {
+        return value_1 -= value_2;
+    }
+    template <integral_expression_typename T>
+    expression<T> operator-(expression<T> value_1, T const value_2) noexcept
+    {
+        return value_1 -= value_2;
+    }
+    template <integral_expression_typename T>
+    expression<T> operator*(expression<T> value_1, expression<T> const& value_2) noexcept
+    {
+        return value_1 *= value_2;
+    }
+    template <integral_expression_typename T>
+    expression<T> operator*(expression<T> value_1, T const value_2) noexcept
+    {
+        return value_1 *= value_2;
+    }
+    template <integral_expression_typename T>
+    expression<T> operator/(expression<T> value_1, expression<T> const& value_2) noexcept
+    {
+        return value_1 /= value_2;
+    }
+    template <integral_expression_typename T>
+    expression<T> operator/(expression<T> value_1, T const value_2) noexcept
+    {
+        return value_1 /= value_2;
+    }
+    template <integral_expression_typename T>
+    expression<T> operator%(expression<T> value_1, expression<T> const& value_2) noexcept
+    {
+        return value_1 %= value_2;
+    }
+    template <integral_expression_typename T>
+    expression<T> operator%(expression<T> value_1, T const value_2) noexcept
+    {
+        return value_1 %= value_2;
+    }
+    template <integral_expression_typename T>
+    expression<T> operator&(expression<T> value_1, expression<T> const& value_2) noexcept
+    {
+        return value_1 &= value_2;
+    }
+    template <integral_expression_typename T>
+    expression<T> operator&(expression<T> value_1, T const value_2) noexcept
+    {
+        return value_1 &= value_2;
+    }
+    template <integral_expression_typename T>
+    expression<T> operator|(expression<T> value_1, expression<T> const& value_2) noexcept
+    {
+        return value_1 |= value_2;
+    }
+    template <integral_expression_typename T>
+    expression<T> operator|(expression<T> value_1, T const value_2) noexcept
+    {
+        return value_1 |= value_2;
+    }
+    template <integral_expression_typename T>
+    expression<T> operator^(expression<T> value_1, expression<T> const& value_2) noexcept
+    {
+        return value_1 ^= value_2;
+    }
+    template <integral_expression_typename T>
+    expression<T> operator^(expression<T> value_1, T const value_2) noexcept
+    {
+        return value_1 ^= value_2;
+    }
+
+    template <integral_expression_typename T>
+    expression<T> operator<<(expression<T> value_1, expression<T> const& value_2) noexcept
+    {
+        return value_1 <<= value_2;
+    }
+    template <integral_expression_typename T>
+    expression<T> operator<<(expression<T> value_1, T const value_2) noexcept
+    {
+        return value_1 <<= value_2;
+    }
+    template <integral_expression_typename T>
+    expression<T> operator>>(expression<T> value_1, expression<T> const& value_2) noexcept
+    {
+        return value_1 >>= value_2;
+    }
+    template <integral_expression_typename T>
+    expression<T> operator>>(expression<T> value_1, T const value_2) noexcept
+    {
+        return value_1 >>= value_2;
+    }
 }
 
 namespace std // NOLINT [cert-dcl58-cpp]
@@ -818,9 +801,9 @@ namespace std // NOLINT [cert-dcl58-cpp]
 #define EXPRESSION(T) expression<TYPE(T)>
 
 template fml::expression<> fml::parse_expression(std::string const&);
-template bool              fml::operator==(expression<> const&, expression<> const&);
-template std::ostream&     fml::operator<<(std::ostream      &, expression<> const&);
-template std::wostream&    fml::operator<<(std::wostream     &, expression<> const&);
+
+template std:: ostream& fml::operator<<(std:: ostream&, expression<> const&);
+template std::wostream& fml::operator<<(std::wostream&, expression<> const&);
 
 #define INSTANTIATE_ANONYMOUS_EXPRESSION(T)\
     template                           fml::expression<>::expression(EXPRESSION(T) const&);\
@@ -833,16 +816,9 @@ template std::wostream&    fml::operator<<(std::wostream     &, expression<> con
 LOOP_TYPES_0(INSTANTIATE_ANONYMOUS_EXPRESSION);
 
 template fml::expression<bool> fml::parse_expression(std::string const&);
-template bool                  fml::operator==(expression<bool> const&, expression<bool> const&);
-template std:: ostream&        fml::operator<<(std:: ostream         &, expression<bool> const&);
-template std::wostream&        fml::operator<<(std::wostream         &, expression<bool> const&);
-template fml::expression<bool> fml::operator! (expression<bool>);
-template fml::expression<bool> fml::operator& (expression<bool>       , expression<bool> const&);
-template fml::expression<bool> fml::operator& (expression<bool>       ,            bool);
-template fml::expression<bool> fml::operator| (expression<bool>       , expression<bool> const&);
-template fml::expression<bool> fml::operator| (expression<bool>       ,            bool);
-template fml::expression<bool> fml::operator^ (expression<bool>       , expression<bool> const&);
-template fml::expression<bool> fml::operator^ (expression<bool>       ,            bool);
+
+template std:: ostream& fml::operator<<(std:: ostream&, expression<bool> const&);
+template std::wostream& fml::operator<<(std::wostream&, expression<bool> const&);
 
 #define INSTANTIATE_BOOLEAN_EXPRESSION(T)\
     template fml::expression<bool>::expression(EXPRESSION(T) const&);
@@ -857,11 +833,8 @@ LOOP_TYPES_0(INSTANTIATE_BOOLEAN_EXPRESSION);
     LOOP_TYPE_SIZE_DIVIDE_2(T, U, INSTANTIATE_EXPRESSION_SQUARE_INDEXED, T, U);
 #define INSTANTIATE_EXPRESSION(T)\
     template fml::EXPRESSION(T) fml::parse_expression(std::string const&);\
-    template bool               fml::operator==(EXPRESSION(T) const&, EXPRESSION(T) const&);\
     template std:: ostream&     fml::operator<<(std:: ostream      &, EXPRESSION(T) const&);\
     template std::wostream&     fml::operator<<(std::wostream      &, EXPRESSION(T) const&);\
-    template fml::EXPRESSION(T) fml::operator- (EXPRESSION(T));\
-    template fml::EXPRESSION(T) fml::operator~ (EXPRESSION(T));\
     template fml::EXPRESSION(T) fml::operator+ (EXPRESSION(T)       , EXPRESSION(T) const&);\
     template fml::EXPRESSION(T) fml::operator+ (EXPRESSION(T)       ,       TYPE(T));\
     template fml::EXPRESSION(T) fml::operator- (EXPRESSION(T)       , EXPRESSION(T) const&);\

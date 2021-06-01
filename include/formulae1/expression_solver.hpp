@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include <formulae1/expression_model.hpp>
 
 // NOLINTNEXTLINE [cert-dcl51-cpp]

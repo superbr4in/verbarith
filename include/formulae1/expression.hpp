@@ -35,9 +35,6 @@ namespace fml
     [[nodiscard]] expression<T> parse_expression(std::string const&);
 
     template <typename T>
-    [[nodiscard]] bool operator==(expression<T> const&, expression<T> const&) noexcept;
-
-    template <typename T>
     std::ostream& operator<<(std::ostream&, expression<T> const&) noexcept;
     template <typename T>
     std::wostream& operator<<(std::wostream&, expression<T> const&) noexcept;
@@ -53,11 +50,6 @@ namespace fml
         friend struct std::hash<expression>;
 
         friend expression parse_expression <>(std::string const&);
-
-        friend bool operator== <>(expression const&, expression const&) noexcept;
-
-        friend std::ostream& operator<< <>(std::ostream&, expression const&) noexcept;
-        friend std::wostream& operator<< <>(std::wostream&, expression const&) noexcept;
 
         std::unique_ptr<z3_ast> base_;
 
@@ -86,7 +78,11 @@ namespace fml
         template <integral_expression_typename T>
         expression<T>& as_expression();
 
+        [[nodiscard]] bool operator==(expression const&) const noexcept;
+
         [[nodiscard]] bool conclusive() const noexcept;
+
+        [[nodiscard]] std::string representation() const noexcept;
 
         template <integral_expression_typename T>
         [[nodiscard]] T evaluate() const;
@@ -100,25 +96,7 @@ namespace fml
     private:
 
         [[nodiscard]] std::size_t size() const noexcept;
-
-        [[nodiscard]] std::string representation() const noexcept;
     };
-
-    template <std::same_as<bool> T>
-    [[nodiscard]] expression<T> operator!(expression<T>) noexcept;
-
-    template <std::same_as<bool> T>
-    [[nodiscard]] expression<T> operator&(expression<T>, expression<T> const&) noexcept;
-    template <std::same_as<bool> T>
-    [[nodiscard]] expression<T> operator&(expression<T>, T) noexcept;
-    template <std::same_as<bool> T>
-    [[nodiscard]] expression<T> operator|(expression<T>, expression<T> const&) noexcept;
-    template <std::same_as<bool> T>
-    [[nodiscard]] expression<T> operator|(expression<T>, T) noexcept;
-    template <std::same_as<bool> T>
-    [[nodiscard]] expression<T> operator^(expression<T>, expression<T> const&) noexcept;
-    template <std::same_as<bool> T>
-    [[nodiscard]] expression<T> operator^(expression<T>, T) noexcept;
 
     template <>
     class expression<bool> : public expression<>
@@ -128,17 +106,6 @@ namespace fml
         friend class expression_model;
 
         friend expression parse_expression <>(std::string const&);
-
-        friend bool operator== <>(expression const&, expression const&) noexcept;
-
-        friend std::ostream& operator<< <>(std::ostream&, expression const&) noexcept;
-        friend std::wostream& operator<< <>(std::wostream&, expression const&) noexcept;
-
-        friend expression operator! <>(expression) noexcept;
-
-        friend expression operator& <>(expression, expression const&) noexcept;
-        friend expression operator| <>(expression, expression const&) noexcept;
-        friend expression operator^ <>(expression, expression const&) noexcept;
 
         explicit expression(z3_ast) noexcept;
 
@@ -156,6 +123,8 @@ namespace fml
 
         void reduce();
 
+        [[nodiscard]] expression operator!() const noexcept;
+
         [[nodiscard]] expression equals(expression const&) const noexcept;
         [[nodiscard]] expression implies(expression const&) const noexcept;
 
@@ -164,10 +133,79 @@ namespace fml
         expression& operator^=(expression const&) noexcept;
     };
 
+    [[nodiscard]] expression<bool> operator&(expression<bool>, expression<bool> const&) noexcept;
+    [[nodiscard]] expression<bool> operator|(expression<bool>, expression<bool> const&) noexcept;
+    [[nodiscard]] expression<bool> operator^(expression<bool>, expression<bool> const&) noexcept;
+
     template <integral_expression_typename T>
-    [[nodiscard]] expression<T> operator-(expression<T>) noexcept;
-    template <integral_expression_typename T>
-    [[nodiscard]] expression<T> operator~(expression<T>) noexcept;
+    class expression<T> : public expression<>
+    {
+        template <typename, typename>
+        friend class expression;
+        friend class expression_model;
+
+        friend expression parse_expression <>(std::string const&);
+
+        explicit expression(z3_ast) noexcept;
+
+    public:
+
+        // NOLINTNEXTLINE [hicpp-explicit-conversions]
+        expression(T value) noexcept;
+
+        [[nodiscard]] static expression symbol(std::string const& symbol);
+
+        explicit expression(expression<bool> const&) noexcept;
+
+        template <integral_expression_typename U>
+            requires (sizeof(U) == sizeof(T))
+        explicit expression(expression<U> const&) noexcept;
+        template <integral_expression_typename U>
+            requires (sizeof(U) > sizeof(T))
+        explicit expression(expression<U> const&) noexcept;
+        template <integral_expression_typename U>
+            requires (sizeof(U) < sizeof(T))
+        explicit expression(expression<U> const&) noexcept;
+
+        template <integral_expression_typename U>
+            requires (sizeof(U) <= sizeof(T))
+        [[nodiscard]] static expression join(std::array<expression<U>, sizeof(T) / sizeof(U)> const&) noexcept;
+        template <integral_expression_typename U, std::size_t POSITION>
+            requires (sizeof(T) >= sizeof(U) * (POSITION + 1))
+        [[nodiscard]] expression<U> extract() const noexcept;
+
+        [[nodiscard]] T evaluate() const;
+
+        template <integral_expression_typename U>
+        [[nodiscard]] expression<U> dereference() const noexcept;
+
+        [[nodiscard]] expression operator-() const noexcept;
+        [[nodiscard]] expression operator~() const noexcept;
+
+        [[nodiscard]] expression<bool> equals(expression const&) const noexcept;
+        [[nodiscard]] expression<bool> less_than(expression const&) const noexcept;
+
+        expression& operator++() noexcept;
+        expression& operator--() noexcept;
+
+        expression& operator+=(expression const&) noexcept;
+        expression& operator-=(expression const&) noexcept;
+        expression& operator*=(expression const&) noexcept;
+        expression& operator/=(expression const&) noexcept;
+        expression& operator%=(expression const&) noexcept;
+        expression& operator&=(expression const&) noexcept;
+        expression& operator|=(expression const&) noexcept;
+        expression& operator^=(expression const&) noexcept;
+
+        expression& operator<<=(expression const&) noexcept;
+        expression& operator>>=(expression const&) noexcept;
+
+    private:
+
+        template <integral_expression_typename U, std::size_t COUNT, typename Generator>
+            requires (COUNT > 1)
+        [[nodiscard]] static expression<U> concatenate(Generator const&) noexcept;
+    };
 
     template <integral_expression_typename T>
     [[nodiscard]] expression<T> operator+(expression<T>, expression<T> const&) noexcept;
@@ -210,93 +248,6 @@ namespace fml
     [[nodiscard]] expression<T> operator>>(expression<T>, expression<T> const&) noexcept;
     template <integral_expression_typename T>
     [[nodiscard]] expression<T> operator>>(expression<T>, T) noexcept;
-
-    template <integral_expression_typename T>
-    class expression<T> : public expression<>
-    {
-        template <typename, typename>
-        friend class expression;
-        friend class expression_model;
-
-        friend expression parse_expression <>(std::string const&);
-
-        friend bool operator== <>(expression const&, expression const&) noexcept;
-
-        friend std::ostream& operator<< <>(std::ostream&, expression const&) noexcept;
-        friend std::wostream& operator<< <>(std::wostream&, expression const&) noexcept;
-
-        friend expression operator- <>(expression) noexcept;
-        friend expression operator~ <>(expression) noexcept;
-
-        friend expression operator+ <>(expression, expression const&) noexcept;
-        friend expression operator- <>(expression, expression const&) noexcept;
-        friend expression operator* <>(expression, expression const&) noexcept;
-        friend expression operator/ <>(expression, expression const&) noexcept;
-        friend expression operator% <>(expression, expression const&) noexcept;
-        friend expression operator& <>(expression, expression const&) noexcept;
-        friend expression operator| <>(expression, expression const&) noexcept;
-        friend expression operator^ <>(expression, expression const&) noexcept;
-
-        friend expression operator<< <>(expression, expression const&) noexcept;
-        friend expression operator>> <>(expression, expression const&) noexcept;
-
-        explicit expression(z3_ast) noexcept;
-
-    public:
-
-        // NOLINTNEXTLINE [hicpp-explicit-conversions]
-        expression(T value) noexcept;
-
-        [[nodiscard]] static expression symbol(std::string const& symbol);
-
-        explicit expression(expression<bool> const&) noexcept;
-
-        template <integral_expression_typename U>
-            requires (sizeof(U) == sizeof(T))
-        explicit expression(expression<U> const&) noexcept;
-        template <integral_expression_typename U>
-            requires (sizeof(U) > sizeof(T))
-        explicit expression(expression<U> const&) noexcept;
-        template <integral_expression_typename U>
-            requires (sizeof(U) < sizeof(T))
-        explicit expression(expression<U> const&) noexcept;
-
-        template <integral_expression_typename U>
-            requires (sizeof(U) <= sizeof(T))
-        [[nodiscard]] static expression join(std::array<expression<U>, sizeof(T) / sizeof(U)> const&) noexcept;
-        template <integral_expression_typename U, std::size_t POSITION>
-            requires (sizeof(T) >= sizeof(U) * (POSITION + 1))
-        [[nodiscard]] expression<U> extract() const noexcept;
-
-        [[nodiscard]] T evaluate() const;
-
-        template <integral_expression_typename U>
-        [[nodiscard]] expression<U> dereference() const noexcept;
-
-        [[nodiscard]] expression<bool> equals(expression const&) const noexcept;
-        [[nodiscard]] expression<bool> less_than(expression const&) const noexcept;
-
-        expression& operator++() noexcept;
-        expression& operator--() noexcept;
-
-        expression& operator+=(expression const&) noexcept;
-        expression& operator-=(expression const&) noexcept;
-        expression& operator*=(expression const&) noexcept;
-        expression& operator/=(expression const&) noexcept;
-        expression& operator%=(expression const&) noexcept;
-        expression& operator&=(expression const&) noexcept;
-        expression& operator|=(expression const&) noexcept;
-        expression& operator^=(expression const&) noexcept;
-
-        expression& operator<<=(expression const&) noexcept;
-        expression& operator>>=(expression const&) noexcept;
-
-    private:
-
-        template <integral_expression_typename U, std::size_t COUNT, typename Generator>
-            requires (COUNT > 1)
-        [[nodiscard]] static expression<U> concatenate(Generator const&) noexcept;
-    };
 
     template <typename T>
     expression(T) -> expression<T>;
