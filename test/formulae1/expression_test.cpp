@@ -1,3 +1,5 @@
+#include <array>
+
 #include <catch2/catch.hpp>
 
 #include <formulae1/expression.hpp>

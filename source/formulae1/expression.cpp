@@ -1,5 +1,7 @@
 #include <algorithm>
+#include <array>
 #include <climits>
+#include <ostream>
 #include <regex>
 
 #include <formulae1/expression.hpp>
@@ -315,7 +317,7 @@ namespace fml
     expression<bool> expression<bool>::symbol(std::string const& symbol)
     {
         // TODO: Remove this and (possibly) more duplicated code
-        if (symbol.empty() || std::isdigit(symbol.front()) != 0 || std::ranges::any_of(symbol, [](char const c) { return c == ' ' || std::isprint(c) == 0; }))
+        if (symbol.empty() || std::isdigit(symbol.front()) != 0 || std::any_of(symbol.begin(), symbol.end(), [](char const c) { return c == ' ' || std::isprint(c) == 0; }))
             throw std::invalid_argument("Invalid symbol");
 
         return expression(
@@ -540,7 +542,7 @@ namespace fml
     template <integral_expression_typename T>
     expression<T> expression<T>::symbol(std::string const& symbol)
     {
-        if (symbol.empty() || std::isdigit(symbol.front()) != 0 || std::ranges::any_of(symbol, [](char const c) { return c == ' ' || std::isprint(c) == 0; }))
+        if (symbol.empty() || std::isdigit(symbol.front()) != 0 || std::any_of(symbol.begin(), symbol.end(), [](char const c) { return c == ' ' || std::isprint(c) == 0; }))
             throw std::invalid_argument("Invalid symbol");
 
         return expression(
@@ -668,7 +670,7 @@ namespace fml
     template <integral_expression_typename T>
     expression<bool> expression<T>::less_than(expression const& other) const noexcept
     {
-        z3_ast derived(std::signed_integral<T> ? Z3_mk_bvslt : Z3_mk_bvult, *base_, *other.base_);
+        z3_ast derived(std::is_signed_v<T> ? Z3_mk_bvslt : Z3_mk_bvult, *base_, *other.base_);
         derived.update(Z3_simplify);
 
         return expression<bool>(std::move(derived));
@@ -712,7 +714,7 @@ namespace fml
     template <integral_expression_typename T>
     expression<T>& expression<T>::operator /=(expression const& other) noexcept
     {
-        base_->update(std::signed_integral<T> ? Z3_mk_bvsdiv : Z3_mk_bvudiv, *other.base_);
+        base_->update(std::is_signed_v<T> ? Z3_mk_bvsdiv : Z3_mk_bvudiv, *other.base_);
         base_->update(Z3_simplify);
 
         return *this;
@@ -720,7 +722,7 @@ namespace fml
     template <integral_expression_typename T>
     expression<T>& expression<T>::operator %=(expression const& other) noexcept
     {
-        base_->update(std::signed_integral<T> ? Z3_mk_bvsrem : Z3_mk_bvurem, *other.base_);
+        base_->update(std::is_signed_v<T> ? Z3_mk_bvsrem : Z3_mk_bvurem, *other.base_);
         base_->update(Z3_simplify);
 
         return *this;

@@ -1,6 +1,7 @@
 Checks:
 >
     *,
+    -altera-struct-pack-align,
     -cppcoreguidelines-avoid-magic-numbers,
     -cppcoreguidelines-macro-usage,
     -cppcoreguidelines-pro-bounds-constant-array-index,
@@ -13,6 +14,7 @@ Checks:
     -llvm-header-guard,
     -llvm-namespace-comment,
     -llvmlibc-callee-namespace,
+    -llvmlibc-restrict-system-libc-headers,
     -modernize-use-trailing-return-type,
     -readability-magic-numbers,
 

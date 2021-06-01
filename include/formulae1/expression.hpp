@@ -1,5 +1,6 @@
 #pragma once
 
+#include <concepts>
 #include <memory>
 #include <unordered_set>
 
@@ -19,7 +20,7 @@ namespace fml
     template <typename T>
     concept integral_expression_typename =
             std::same_as<T, std::byte>
-        || (std::same_as<T, std::remove_cvref_t<T>> && !std::same_as<T, bool> && std::integral<T>);
+        || (std::same_as<T, std::remove_cvref_t<T>> && !std::same_as<T, bool> && std::is_integral_v<T>);
 
     template <typename, typename ResourceBase, void (_Z3_context*, ResourceBase*), void (_Z3_context*, ResourceBase*)>
     class z3_resource;
