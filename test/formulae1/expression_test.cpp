@@ -7,23 +7,23 @@
 using namespace fml;
 
 // Type deduction
-static_assert(std::is_same_v<decltype(expression(static_cast<unsigned char >(0))), expression<unsigned char >>);
+static_assert(std::is_same_v<decltype(expression(static_cast<unsigned char>(0))), expression<unsigned char>>);
 static_assert(std::is_same_v<decltype(expression(static_cast<unsigned short>(0))), expression<unsigned short>>);
-static_assert(std::is_same_v<decltype(expression(static_cast<unsigned int  >(0))), expression<unsigned int  >>);
-static_assert(std::is_same_v<decltype(expression(static_cast<  signed int  >(0))), expression<  signed int  >>);
+static_assert(std::is_same_v<decltype(expression(static_cast<unsigned int>(0))), expression<unsigned int>>);
+static_assert(std::is_same_v<decltype(expression(static_cast<signed int>(0))), expression<signed int>>);
 
 TEST_CASE("Expression: Symbol requirements")
 {
     std::string const error_message("Invalid symbol");
 
-    CHECK_THROWS_WITH(expression<unsigned char>::symbol(""),    error_message);
-    CHECK_THROWS_WITH(expression<unsigned char>::symbol("0"),   error_message);
+    CHECK_THROWS_WITH(expression<unsigned char>::symbol(""), error_message);
+    CHECK_THROWS_WITH(expression<unsigned char>::symbol("0"), error_message);
     CHECK_THROWS_WITH(expression<unsigned char>::symbol("0ab"), error_message);
-    CHECK_THROWS_WITH(expression<unsigned char>::symbol(" "),   error_message);
-    CHECK_THROWS_WITH(expression<unsigned char>::symbol("a "),  error_message);
+    CHECK_THROWS_WITH(expression<unsigned char>::symbol(" "), error_message);
+    CHECK_THROWS_WITH(expression<unsigned char>::symbol("a "), error_message);
     CHECK_THROWS_WITH(expression<unsigned char>::symbol("a b"), error_message);
     CHECK_THROWS_WITH(expression<unsigned char>::symbol("c\t"), error_message);
-    CHECK_THROWS_WITH(expression<unsigned char>::symbol("\n"),  error_message);
+    CHECK_THROWS_WITH(expression<unsigned char>::symbol("\n"), error_message);
 }
 
 TEST_CASE("Expression: Signedness")
@@ -73,7 +73,7 @@ TEST_CASE("Expression: Joint")
     {
         auto const value = expression<unsigned>::symbol("X");
 
-        CHECK(expression<unsigned>::join<unsigned>({ value }) == value);
+        CHECK(expression<unsigned>::join<unsigned>({value}) == value);
     }
     SECTION("Arbitrary")
     {
@@ -83,21 +83,21 @@ TEST_CASE("Expression: Joint")
 
         SECTION("Quadrupled")
         {
-            CHECK(expression<unsigned>::join<unsigned char>(
-                {
+            CHECK(
+                expression<unsigned>::join<unsigned char>(std::array{
                     expression<unsigned char>(0x78),
                     expression<unsigned char>(0x56),
                     expression<unsigned char>(0x34),
-                    expression<unsigned char>(0x12)
-                }) == result);
+                    expression<unsigned char>(0x12)})
+                == result);
         }
         SECTION("Doubled")
         {
-            CHECK(expression<unsigned>::join<unsigned short>(
-                {
+            CHECK(
+                expression<unsigned>::join<unsigned short>(std::array{
                     expression<unsigned short>(0x5678),
-                    expression<unsigned short>(0x1234)
-                }) == result);
+                    expression<unsigned short>(0x1234)})
+                == result);
         }
     }
 }
@@ -171,9 +171,9 @@ TEST_CASE("Expression: Dependencies")
     auto const value_7 = value_4 - value_6;
     auto const value_7_dependencies = value_7.dependencies();
     REQUIRE(2 == value_7_dependencies.size());
-    REQUIRE((
-        (value_2_symbol == *value_7_dependencies.begin() && value_6_symbol == *std::next(value_7_dependencies.begin())) ||
-        (value_6_symbol == *value_7_dependencies.begin() && value_2_symbol == *std::next(value_7_dependencies.begin()))));
+    REQUIRE(
+        ((value_2_symbol == *value_7_dependencies.begin() && value_6_symbol == *std::next(value_7_dependencies.begin()))
+            || (value_6_symbol == *value_7_dependencies.begin() && value_2_symbol == *std::next(value_7_dependencies.begin()))));
 }
 TEST_CASE("Expression: Dependencies (indirect)")
 {
@@ -207,12 +207,12 @@ TEST_CASE("Expression: Dependencies (indirect)")
 TEST_CASE("Expression: Evaluation")
 {
     CHECK(expression<unsigned char>(0).evaluate() == 0);
-    CHECK(expression<  signed char>(0).evaluate() == 0);
+    CHECK(expression<signed char>(0).evaluate() == 0);
     CHECK(expression<unsigned char>(117).evaluate() == 117);
-    CHECK(expression<  signed char>(117).evaluate() == 117);
-    CHECK(expression<  signed char>(-44).evaluate() == -44);
+    CHECK(expression<signed char>(117).evaluate() == 117);
+    CHECK(expression<signed char>(-44).evaluate() == -44);
     CHECK(expression(static_cast<unsigned char>(599)).evaluate() == 87);
-    CHECK(expression(static_cast<  signed char>(234)).evaluate() == -22);
+    CHECK(expression(static_cast<signed char>(234)).evaluate() == -22);
     CHECK_THROWS_WITH(expression<unsigned char>::symbol("X").evaluate(), "Inconclusive evaluation");
 }
 
@@ -222,14 +222,14 @@ TEST_CASE("Expression: Equality")
 
     SECTION("Same")
     {
-        CHECK      (a == a);
+        CHECK(a == a);
         CHECK_FALSE(a != a);
     }
     SECTION("Copy")
     {
         expression<unsigned> a_copy(a);
 
-        REQUIRE      (a_copy == a);
+        REQUIRE(a_copy == a);
         REQUIRE_FALSE(a_copy != a);
 
         SECTION("Altered")
@@ -237,11 +237,11 @@ TEST_CASE("Expression: Equality")
             a += expression<unsigned>(1);
 
             REQUIRE_FALSE(a_copy == a);
-            REQUIRE      (a_copy != a);
+            REQUIRE(a_copy != a);
 
             a -= expression<unsigned>(1);
 
-            CHECK      (a_copy == a);
+            CHECK(a_copy == a);
             CHECK_FALSE(a_copy != a);
         }
         SECTION("Simplified")
@@ -250,7 +250,7 @@ TEST_CASE("Expression: Equality")
             a_copy += expression<unsigned>(1);
             a_copy += expression<unsigned>(1);
 
-            CHECK      (a_copy == a);
+            CHECK(a_copy == a);
             CHECK_FALSE(a_copy != a);
         }
     }
@@ -259,7 +259,7 @@ TEST_CASE("Expression: Equality")
         auto const b = expression<unsigned>::symbol("b");
 
         CHECK_FALSE(b == a);
-        CHECK      (b != a);
+        CHECK(b != a);
     }
 }
 

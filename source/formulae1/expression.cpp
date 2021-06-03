@@ -165,7 +165,7 @@ namespace fml
         if (sizeof(T) != size())
             throw std::logic_error("Invalid width");
 
-        if (std::uint64_t value { }; base_->apply(Z3_get_numeral_uint64, &value))
+        if (std::uint64_t value{}; base_->apply(Z3_get_numeral_uint64, &value))
             return static_cast<T>(value);
 
         throw std::logic_error("Inconclusive evaluation");
@@ -179,7 +179,7 @@ namespace fml
         if (argument_count == 0 && !conclusive())
         {
             // Dependency by itself
-            return { z3_symbol(Z3_get_decl_name, z3_func_decl(Z3_get_app_decl, base_application)).apply(Z3_get_symbol_string) };
+            return {z3_symbol(Z3_get_decl_name, z3_func_decl(Z3_get_app_decl, base_application)).apply(Z3_get_symbol_string)};
         }
 
         std::unordered_set<std::string> dependencies;
@@ -201,7 +201,7 @@ namespace fml
         if (argument_count == 1 && z3_func_decl(Z3_get_app_decl, base_application).apply(Z3_get_decl_name) == indirection_symbol)
         {
             // Dependency by itself
-            return { expression(z3_ast(Z3_get_app_arg, base_application, 0)) };
+            return {expression(z3_ast(Z3_get_app_arg, base_application, 0))};
         }
 
         std::unordered_set<expression> dependencies;
@@ -275,8 +275,14 @@ namespace fml
 
     expression<bool> expression<bool>::symbol(std::string const& symbol)
     {
+        auto const contains_space_or_unprint = std::any_of(symbol.begin(), symbol.end(),
+            [](char const c)
+            {
+                return c == ' ' || std::isprint(c) == 0;
+            });
+
         // TODO: Remove this and (possibly) more duplicated code
-        if (symbol.empty() || std::isdigit(symbol.front()) != 0 || std::any_of(symbol.begin(), symbol.end(), [](char const c) { return c == ' ' || std::isprint(c) == 0; }))
+        if (contains_space_or_unprint || symbol.empty() || std::isdigit(symbol.front()) != 0)
             throw std::invalid_argument("Invalid symbol");
 
         return expression(
@@ -324,7 +330,7 @@ namespace fml
         {
             z3_ast formula(Z3_goal_formula, reduction_goal, index);
 
-            std::array<_Z3_ast*, 2> const arguments { *base_, formula };
+            std::array<_Z3_ast*, 2> const arguments{*base_, formula};
             base_->update_2(Z3_mk_and, arguments.size(), arguments.data());
         }
         base_->update(Z3_simplify);
@@ -356,7 +362,7 @@ namespace fml
 
     expression<bool>& expression<bool>::operator&=(expression const& other) noexcept
     {
-        std::array<_Z3_ast*, 2> const arguments { *base_, *other.base_ };
+        std::array<_Z3_ast*, 2> const arguments{*base_, *other.base_};
         base_->update_2(Z3_mk_and, arguments.size(), arguments.data());
         base_->update(Z3_simplify);
 
@@ -364,7 +370,7 @@ namespace fml
     }
     expression<bool>& expression<bool>::operator|=(expression const& other) noexcept
     {
-        std::array<_Z3_ast*, 2> const arguments { *base_, *other.base_ };
+        std::array<_Z3_ast*, 2> const arguments{*base_, *other.base_};
         base_->update_2(Z3_mk_or, arguments.size(), arguments.data());
         base_->update(Z3_simplify);
 
@@ -423,7 +429,13 @@ namespace fml
     template <integral_expression_typename T>
     expression<T> expression<T>::symbol(std::string const& symbol)
     {
-        if (symbol.empty() || std::isdigit(symbol.front()) != 0 || std::any_of(symbol.begin(), symbol.end(), [](char const c) { return c == ' ' || std::isprint(c) == 0; }))
+        auto const contains_space_or_unprint = std::any_of(symbol.begin(), symbol.end(),
+            [](char const c)
+            {
+                return c == ' ' || std::isprint(c) == 0;
+            });
+
+        if (contains_space_or_unprint || symbol.empty() || std::isdigit(symbol.front()) != 0)
             throw std::invalid_argument("Invalid symbol");
 
         return expression(
@@ -445,14 +457,16 @@ namespace fml
 
     template <integral_expression_typename T>
     template <integral_expression_typename U>
-        requires (sizeof(U) == sizeof(T))
-    expression<T>::expression(expression<U> const& other) noexcept :
+        requires(sizeof(U) == sizeof(T))
+    expression<T>::expression(expression<U> const& other)
+    noexcept :
         expression(*other.base_)
     { }
     template <integral_expression_typename T>
     template <integral_expression_typename U>
-        requires (sizeof(U) > sizeof(T))
-    expression<T>::expression(expression<U> const& other) noexcept :
+        requires(sizeof(U) > sizeof(T))
+    expression<T>::expression(expression<U> const& other)
+    noexcept :
         expression(*other.base_)
     {
         base_->update_2(Z3_mk_extract, unsigned{sizeof(T) * CHAR_BIT - 1}, unsigned{0}, *base_);
@@ -460,8 +474,9 @@ namespace fml
     }
     template <integral_expression_typename T>
     template <integral_expression_typename U>
-        requires (sizeof(U) < sizeof(T))
-    expression<T>::expression(expression<U> const& other) noexcept :
+        requires(sizeof(U) < sizeof(T))
+    expression<T>::expression(expression<U> const& other)
+    noexcept :
         expression(*other.base_)
     {
         base_->update_2(Z3_mk_zero_ext, unsigned{(sizeof(T) - sizeof(U)) * CHAR_BIT}, *base_);
@@ -470,8 +485,9 @@ namespace fml
 
     template <integral_expression_typename T>
     template <integral_expression_typename U>
-        requires (sizeof(U) <= sizeof(T))
-    expression<T> expression<T>::join(std::array<expression<U>, sizeof(T) / sizeof(U)> const& parts) noexcept
+        requires(sizeof(U) <= sizeof(T))
+    expression<T> expression<T>::join(std::array<expression<U>, sizeof(T) / sizeof(U)> const& parts)
+    noexcept
     {
         if constexpr (sizeof(U) == sizeof(T))
         {
@@ -491,8 +507,9 @@ namespace fml
     }
     template <integral_expression_typename T>
     template <integral_expression_typename U, std::size_t POSITION>
-        requires (sizeof(T) >= sizeof(U) * (POSITION + 1))
-    expression<U> expression<T>::extract() const noexcept
+        requires(sizeof(T) >= sizeof(U) * (POSITION + 1))
+    expression<U> expression<T>::extract()
+    const noexcept
     {
         z3_ast derived(Z3_mk_extract, unsigned{(sizeof(U) * CHAR_BIT * (POSITION + 1)) - 1}, unsigned{sizeof(U) * CHAR_BIT * POSITION}, *base_);
         derived.update(Z3_simplify);
@@ -503,7 +520,7 @@ namespace fml
     template <integral_expression_typename T>
     T expression<T>::evaluate() const
     {
-        if (std::uint64_t value { }; base_->apply(Z3_get_numeral_uint64, &value))
+        if (std::uint64_t value{}; base_->apply(Z3_get_numeral_uint64, &value))
             return static_cast<T>(value);
 
         throw std::logic_error("Inconclusive evaluation");
@@ -569,7 +586,7 @@ namespace fml
     }
 
     template <integral_expression_typename T>
-    expression<T>& expression<T>::operator +=(expression const& other) noexcept
+    expression<T>& expression<T>::operator+=(expression const& other) noexcept
     {
         base_->update(Z3_mk_bvadd, *other.base_);
         base_->update(Z3_simplify);
@@ -577,7 +594,7 @@ namespace fml
         return *this;
     }
     template <integral_expression_typename T>
-    expression<T>& expression<T>::operator -=(expression const& other) noexcept
+    expression<T>& expression<T>::operator-=(expression const& other) noexcept
     {
         base_->update(Z3_mk_bvsub, *other.base_);
         base_->update(Z3_simplify);
@@ -585,7 +602,7 @@ namespace fml
         return *this;
     }
     template <integral_expression_typename T>
-    expression<T>& expression<T>::operator *=(expression const& other) noexcept
+    expression<T>& expression<T>::operator*=(expression const& other) noexcept
     {
         base_->update(Z3_mk_bvmul, *other.base_);
         base_->update(Z3_simplify);
@@ -593,7 +610,7 @@ namespace fml
         return *this;
     }
     template <integral_expression_typename T>
-    expression<T>& expression<T>::operator /=(expression const& other) noexcept
+    expression<T>& expression<T>::operator/=(expression const& other) noexcept
     {
         base_->update(std::is_signed_v<T> ? Z3_mk_bvsdiv : Z3_mk_bvudiv, *other.base_);
         base_->update(Z3_simplify);
@@ -601,7 +618,7 @@ namespace fml
         return *this;
     }
     template <integral_expression_typename T>
-    expression<T>& expression<T>::operator %=(expression const& other) noexcept
+    expression<T>& expression<T>::operator%=(expression const& other) noexcept
     {
         base_->update(std::is_signed_v<T> ? Z3_mk_bvsrem : Z3_mk_bvurem, *other.base_);
         base_->update(Z3_simplify);
@@ -609,7 +626,7 @@ namespace fml
         return *this;
     }
     template <integral_expression_typename T>
-    expression<T>& expression<T>::operator &=(expression const& other) noexcept
+    expression<T>& expression<T>::operator&=(expression const& other) noexcept
     {
         base_->update(Z3_mk_bvand, *other.base_);
         base_->update(Z3_simplify);
@@ -617,7 +634,7 @@ namespace fml
         return *this;
     }
     template <integral_expression_typename T>
-    expression<T>& expression<T>::operator |=(expression const& other) noexcept
+    expression<T>& expression<T>::operator|=(expression const& other) noexcept
     {
         base_->update(Z3_mk_bvor, *other.base_);
         base_->update(Z3_simplify);
@@ -625,7 +642,7 @@ namespace fml
         return *this;
     }
     template <integral_expression_typename T>
-    expression<T>& expression<T>::operator ^=(expression const& other) noexcept
+    expression<T>& expression<T>::operator^=(expression const& other) noexcept
     {
         base_->update(Z3_mk_bvxor, *other.base_);
         base_->update(Z3_simplify);
@@ -651,8 +668,9 @@ namespace fml
 
     template <integral_expression_typename T>
     template <integral_expression_typename U, std::size_t COUNT, typename Generator>
-        requires (COUNT > 1)
-    expression<U> expression<T>::concatenate(Generator const& generator) noexcept
+        requires(COUNT > 1)
+    expression<U> expression<T>::concatenate(Generator const& generator)
+    noexcept
     {
         auto const& current = generator.template operator()<COUNT - 1>();
 
@@ -802,60 +820,60 @@ namespace std // NOLINT [cert-dcl58-cpp]
 
 template fml::expression<> fml::parse_expression(std::string const&);
 
-template std:: ostream& fml::operator<<(std:: ostream&, expression<> const&);
+template std::ostream& fml::operator<<(std::ostream&, expression<> const&);
 template std::wostream& fml::operator<<(std::wostream&, expression<> const&);
 
-#define INSTANTIATE_ANONYMOUS_EXPRESSION(T)\
-    template                           fml::expression<>::expression(EXPRESSION(T) const&);\
-    template fml::expression< >      & fml::expression<>::operator=( EXPRESSION(T) const&);\
-    template                           fml::expression<>::expression(EXPRESSION(T)&&);\
-    template fml::expression< >      & fml::expression<>::operator=( EXPRESSION(T)&&);\
-    template fml::EXPRESSION(T) const& fml::expression<>::as_expression() const;\
-    template fml::EXPRESSION(T)      & fml::expression<>::as_expression();\
-    template            TYPE(T)        fml::expression<>::evaluate() const;
+#define INSTANTIATE_ANONYMOUS_EXPRESSION(T) \
+    template fml::expression<>::expression(EXPRESSION(T) const&); \
+    template fml::expression<>& fml::expression<>::operator=(EXPRESSION(T) const&); \
+    template fml::expression<>::expression(EXPRESSION(T) &&); \
+    template fml::expression<>& fml::expression<>::operator=(EXPRESSION(T) &&); \
+    template fml::EXPRESSION(T) const& fml::expression<>::as_expression() const; \
+    template fml::EXPRESSION(T) & fml::expression<>::as_expression(); \
+    template TYPE(T) fml::expression<>::evaluate() const;
 LOOP_TYPES_0(INSTANTIATE_ANONYMOUS_EXPRESSION);
 
 template fml::expression<bool> fml::parse_expression(std::string const&);
 
-template std:: ostream& fml::operator<<(std:: ostream&, expression<bool> const&);
+template std::ostream& fml::operator<<(std::ostream&, expression<bool> const&);
 template std::wostream& fml::operator<<(std::wostream&, expression<bool> const&);
 
-#define INSTANTIATE_BOOLEAN_EXPRESSION(T)\
+#define INSTANTIATE_BOOLEAN_EXPRESSION(T) \
     template fml::expression<bool>::expression(EXPRESSION(T) const&);
 LOOP_TYPES_0(INSTANTIATE_BOOLEAN_EXPRESSION);
 
-#define INSTANTIATE_EXPRESSION_SQUARE_INDEXED(T, U, index)\
+#define INSTANTIATE_EXPRESSION_SQUARE_INDEXED(T, U, index) \
     template fml::EXPRESSION(U) fml::EXPRESSION(T)::extract<TYPE(U), index>() const;
-#define INSTANTIATE_EXPRESSION_SQUARE(T, U)\
-    IF_NOT_EQUAL(           T, U, template                    fml::EXPRESSION(T)::expression(     EXPRESSION(U) const&));\
-    IF_TYPE_SIZE_DIVIDABLE( T, U, template fml::EXPRESSION(T) fml::EXPRESSION(T)::join(std::array<EXPRESSION(U), TYPE_SIZE_DIVIDE(T, U)> const&));\
-                                  template fml::EXPRESSION(U) fml::EXPRESSION(T)::dereference() const;\
+#define INSTANTIATE_EXPRESSION_SQUARE(T, U) \
+    IF_NOT_EQUAL(T, U, template fml::EXPRESSION(T)::expression(EXPRESSION(U) const&)); \
+    IF_TYPE_SIZE_DIVIDABLE(T, U, template fml::EXPRESSION(T) fml::EXPRESSION(T)::join(std::array<EXPRESSION(U), TYPE_SIZE_DIVIDE(T, U)> const&)); \
+    template fml::EXPRESSION(U) fml::EXPRESSION(T)::dereference() const; \
     LOOP_TYPE_SIZE_DIVIDE_2(T, U, INSTANTIATE_EXPRESSION_SQUARE_INDEXED, T, U);
-#define INSTANTIATE_EXPRESSION(T)\
-    template fml::EXPRESSION(T) fml::parse_expression(std::string const&);\
-    template std:: ostream&     fml::operator<<(std:: ostream      &, EXPRESSION(T) const&);\
-    template std::wostream&     fml::operator<<(std::wostream      &, EXPRESSION(T) const&);\
-    template fml::EXPRESSION(T) fml::operator+ (EXPRESSION(T)       , EXPRESSION(T) const&);\
-    template fml::EXPRESSION(T) fml::operator+ (EXPRESSION(T)       ,       TYPE(T));\
-    template fml::EXPRESSION(T) fml::operator- (EXPRESSION(T)       , EXPRESSION(T) const&);\
-    template fml::EXPRESSION(T) fml::operator- (EXPRESSION(T)       ,       TYPE(T));\
-    template fml::EXPRESSION(T) fml::operator* (EXPRESSION(T)       , EXPRESSION(T) const&);\
-    template fml::EXPRESSION(T) fml::operator* (EXPRESSION(T)       ,       TYPE(T));\
-    template fml::EXPRESSION(T) fml::operator/ (EXPRESSION(T)       , EXPRESSION(T) const&);\
-    template fml::EXPRESSION(T) fml::operator/ (EXPRESSION(T)       ,       TYPE(T));\
-    template fml::EXPRESSION(T) fml::operator% (EXPRESSION(T)       , EXPRESSION(T) const&);\
-    template fml::EXPRESSION(T) fml::operator% (EXPRESSION(T)       ,       TYPE(T));\
-    template fml::EXPRESSION(T) fml::operator& (EXPRESSION(T)       , EXPRESSION(T) const&);\
-    template fml::EXPRESSION(T) fml::operator& (EXPRESSION(T)       ,       TYPE(T));\
-    template fml::EXPRESSION(T) fml::operator| (EXPRESSION(T)       , EXPRESSION(T) const&);\
-    template fml::EXPRESSION(T) fml::operator| (EXPRESSION(T)       ,       TYPE(T));\
-    template fml::EXPRESSION(T) fml::operator^ (EXPRESSION(T)       , EXPRESSION(T) const&);\
-    template fml::EXPRESSION(T) fml::operator^ (EXPRESSION(T)       ,       TYPE(T));\
-    template fml::EXPRESSION(T) fml::operator<<(EXPRESSION(T)       , EXPRESSION(T) const&);\
-    template fml::EXPRESSION(T) fml::operator<<(EXPRESSION(T)       ,       TYPE(T));\
-    template fml::EXPRESSION(T) fml::operator>>(EXPRESSION(T)       , EXPRESSION(T) const&);\
-    template fml::EXPRESSION(T) fml::operator>>(EXPRESSION(T)       ,       TYPE(T));\
-    template class              fml::EXPRESSION(T);\
-    template class    std::hash<fml::EXPRESSION(T)>;\
+#define INSTANTIATE_EXPRESSION(T) \
+    template fml::EXPRESSION(T) fml::parse_expression(std::string const&); \
+    template std::ostream& fml::operator<<(std::ostream&, EXPRESSION(T) const&); \
+    template std::wostream& fml::operator<<(std::wostream&, EXPRESSION(T) const&); \
+    template fml::EXPRESSION(T) fml::operator+(EXPRESSION(T), EXPRESSION(T) const&); \
+    template fml::EXPRESSION(T) fml::operator+(EXPRESSION(T), TYPE(T)); \
+    template fml::EXPRESSION(T) fml::operator-(EXPRESSION(T), EXPRESSION(T) const&); \
+    template fml::EXPRESSION(T) fml::operator-(EXPRESSION(T), TYPE(T)); \
+    template fml::EXPRESSION(T) fml::operator*(EXPRESSION(T), EXPRESSION(T) const&); \
+    template fml::EXPRESSION(T) fml::operator*(EXPRESSION(T), TYPE(T)); \
+    template fml::EXPRESSION(T) fml::operator/(EXPRESSION(T), EXPRESSION(T) const&); \
+    template fml::EXPRESSION(T) fml::operator/(EXPRESSION(T), TYPE(T)); \
+    template fml::EXPRESSION(T) fml::operator%(EXPRESSION(T), EXPRESSION(T) const&); \
+    template fml::EXPRESSION(T) fml::operator%(EXPRESSION(T), TYPE(T)); \
+    template fml::EXPRESSION(T) fml::operator&(EXPRESSION(T), EXPRESSION(T) const&); \
+    template fml::EXPRESSION(T) fml::operator&(EXPRESSION(T), TYPE(T)); \
+    template fml::EXPRESSION(T) fml::operator|(EXPRESSION(T), EXPRESSION(T) const&); \
+    template fml::EXPRESSION(T) fml::operator|(EXPRESSION(T), TYPE(T)); \
+    template fml::EXPRESSION(T) fml::operator^(EXPRESSION(T), EXPRESSION(T) const&); \
+    template fml::EXPRESSION(T) fml::operator^(EXPRESSION(T), TYPE(T)); \
+    template fml::EXPRESSION(T) fml::operator<<(EXPRESSION(T), EXPRESSION(T) const&); \
+    template fml::EXPRESSION(T) fml::operator<<(EXPRESSION(T), TYPE(T)); \
+    template fml::EXPRESSION(T) fml::operator>>(EXPRESSION(T), EXPRESSION(T) const&); \
+    template fml::EXPRESSION(T) fml::operator>>(EXPRESSION(T), TYPE(T)); \
+    template class fml::EXPRESSION(T); \
+    template class std::hash<fml::EXPRESSION(T)>; \
     LOOP_TYPES_1(INSTANTIATE_EXPRESSION_SQUARE, T);
 LOOP_TYPES_0(INSTANTIATE_EXPRESSION);

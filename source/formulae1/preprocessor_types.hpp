@@ -5,6 +5,8 @@
 
 #include "preprocessor.hpp"
 
+// clang-format off
+
 #define TYPE(T) TYPE_##T
 
 #define LOOP_TYPES_0(action, ...) LOOP_12_0(action, __VA_ARGS__)
@@ -649,3 +651,5 @@ LOOP_TYPES_0(  ASSERT_TYPE_SIZE_EQUAL);
 LOOP_TYPES_0(  ASSERT_TYPE_SIZE_DIVIDABLE); // NOLINT [bugprone-sizeof-expression]
 #undef  SINGLE_ASSERT_TYPE_SIZE_DIVIDABLE
 #undef         ASSERT_TYPE_SIZE_DIVIDABLE
+
+// clang-format on

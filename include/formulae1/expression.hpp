@@ -17,12 +17,14 @@ extern "C"
 
 namespace fml
 {
+    // clang-format off
     template <typename T>
     concept integral_expression_typename =
             std::same_as<T, std::byte>
         || (std::same_as<T, std::remove_cvref_t<T>> && !std::same_as<T, bool> && std::is_integral_v<T>);
+    // clang-format on
 
-    template <typename, typename ResourceBase, void (_Z3_context*, ResourceBase*), void (_Z3_context*, ResourceBase*)>
+    template <typename, typename ResourceBase, void(_Z3_context*, ResourceBase*), void(_Z3_context*, ResourceBase*)>
     class z3_resource;
     using z3_ast = z3_resource<_Z3_ast, _Z3_ast, Z3_inc_ref, Z3_dec_ref>;
 
@@ -49,14 +51,13 @@ namespace fml
 
         friend struct std::hash<expression>;
 
-        friend expression parse_expression <>(std::string const&);
+        friend expression parse_expression<>(std::string const&);
 
         std::unique_ptr<z3_ast> base_;
 
         explicit expression(z3_ast) noexcept;
 
     public:
-
         virtual ~expression() noexcept;
 
         template <integral_expression_typename T>
@@ -94,7 +95,6 @@ namespace fml
         void substitute_indirect(expression const& key_pointer, expression<std::byte> const& value) noexcept;
 
     private:
-
         [[nodiscard]] std::size_t size() const noexcept;
     };
 
@@ -105,12 +105,11 @@ namespace fml
         friend class expression;
         friend class expression_model;
 
-        friend expression parse_expression <>(std::string const&);
+        friend expression parse_expression<>(std::string const&);
 
         explicit expression(z3_ast) noexcept;
 
     public:
-
         // NOLINTNEXTLINE [hicpp-explicit-conversions]
         expression(bool) noexcept;
 
@@ -144,12 +143,11 @@ namespace fml
         friend class expression;
         friend class expression_model;
 
-        friend expression parse_expression <>(std::string const&);
+        friend expression parse_expression<>(std::string const&);
 
         explicit expression(z3_ast) noexcept;
 
     public:
-
         // NOLINTNEXTLINE [hicpp-explicit-conversions]
         expression(T value) noexcept;
 
@@ -158,20 +156,20 @@ namespace fml
         explicit expression(expression<bool> const&) noexcept;
 
         template <integral_expression_typename U>
-            requires (sizeof(U) == sizeof(T))
+            requires(sizeof(U) == sizeof(T))
         explicit expression(expression<U> const&) noexcept;
         template <integral_expression_typename U>
-            requires (sizeof(U) > sizeof(T))
+            requires(sizeof(U) > sizeof(T))
         explicit expression(expression<U> const&) noexcept;
         template <integral_expression_typename U>
-            requires (sizeof(U) < sizeof(T))
+            requires(sizeof(U) < sizeof(T))
         explicit expression(expression<U> const&) noexcept;
 
         template <integral_expression_typename U>
-            requires (sizeof(U) <= sizeof(T))
+            requires(sizeof(U) <= sizeof(T))
         [[nodiscard]] static expression join(std::array<expression<U>, sizeof(T) / sizeof(U)> const&) noexcept;
         template <integral_expression_typename U, std::size_t POSITION>
-            requires (sizeof(T) >= sizeof(U) * (POSITION + 1))
+            requires(sizeof(T) >= sizeof(U) * (POSITION + 1))
         [[nodiscard]] expression<U> extract() const noexcept;
 
         [[nodiscard]] T evaluate() const;
@@ -201,9 +199,8 @@ namespace fml
         expression& operator>>=(expression const&) noexcept;
 
     private:
-
         template <integral_expression_typename U, std::size_t COUNT, typename Generator>
-            requires (COUNT > 1)
+            requires(COUNT > 1)
         [[nodiscard]] static expression<U> concatenate(Generator const&) noexcept;
     };
 

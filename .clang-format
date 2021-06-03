@@ -1,0 +1,115 @@
+---
+Language : Cpp
+Standard : Latest
+# Indentation
+IndentWidth                       : 4
+TabWidth                          : 4
+UseTab                            : Never
+ContinuationIndentWidth           : 4
+ConstructorInitializerIndentWidth : 4
+AccessModifierOffset              : -4
+IndentCaseBlocks                  : true
+IndentCaseLabels                  : false
+IndentExternBlock                 : Indent
+IndentGotoLabels                  : false
+IndentPPDirectives                : None
+IndentRequires                    : true
+IndentWrappedFunctionNames        : true
+NamespaceIndentation              : All
+# Alignment
+ColumnLimit                  : 0
+AlignAfterOpenBracket        : DontAlign
+AlignConsecutiveAssignments  : None
+AlignConsecutiveBitFields    : None
+AlignConsecutiveDeclarations : None
+AlignConsecutiveMacros       : None
+AlignEscapedNewlines         : DontAlign
+AlignTrailingComments        : false
+# Line breaks
+AllowAllArgumentsOnNextLine               : true
+AllowAllParametersOfDeclarationOnNextLine : true
+AllowShortBlocksOnASingleLine             : Never
+AllowShortCaseLabelsOnASingleLine         : false
+AllowShortEnumsOnASingleLine              : false
+AllowShortFunctionsOnASingleLine          : None
+AllowShortIfStatementsOnASingleLine       : Never
+AllowShortLambdasOnASingleLine            : None
+AllowShortLoopsOnASingleLine              : false
+AlwaysBreakAfterReturnType                : None
+AlwaysBreakBeforeMultilineStrings         : true
+AlwaysBreakTemplateDeclarations           : Yes
+BinPackArguments                          : true
+BinPackParameters                         : true
+BreakBeforeConceptDeclarations            : true
+BreakBeforeTernaryOperators               : true
+BreakConstructorInitializers              : AfterColon
+BreakInheritanceList                      : AfterColon
+BreakStringLiterals                       : false
+CompactNamespaces                         : false
+DeriveLineEnding                          : false
+UseCRLF                                   : false
+ReflowComments                            : false
+# Constructors
+ConstructorInitializerAllOnOneLineOrOnePerLine : true
+AllowAllConstructorInitializersOnNextLine      : false
+# Operators
+AlignOperands              : AlignAfterOperator
+BreakBeforeBinaryOperators : NonAssignment
+# Brace style
+BreakBeforeBraces       : Custom
+BraceWrapping           :
+  IndentBraces          : false
+  SplitEmptyFunction    : false
+  SplitEmptyRecord      : false
+  SplitEmptyNamespace   : false
+  AfterCaseLabel        : true
+  AfterClass            : true
+  AfterControlStatement : Always
+  AfterEnum             : true
+  AfterFunction         : true
+  AfterNamespace        : true
+  AfterStruct           : true
+  AfterUnion            : true
+  AfterExternBlock      : true
+  BeforeCatch           : true
+  BeforeElse            : true
+  BeforeLambdaBody      : true
+  BeforeWhile           : true
+Cpp11BracedListStyle    : true
+# Spacing
+BitFieldColonSpacing              : Both
+DerivePointerAlignment            : false
+PointerAlignment                  : Left
+SpaceAfterCStyleCast              : true
+SpaceAfterLogicalNot              : false
+SpaceAfterTemplateKeyword         : true
+SpaceAroundPointerQualifiers      : Default
+SpaceBeforeAssignmentOperators    : true
+SpaceBeforeCaseColon              : false
+SpaceBeforeCpp11BracedList        : false
+SpaceBeforeCtorInitializerColon   : true
+SpaceBeforeInheritanceColon       : true
+SpaceBeforeParens                 : ControlStatements
+SpaceBeforeRangeBasedForLoopColon : true
+SpaceBeforeSquareBrackets         : false
+SpaceInEmptyBlock                 : true
+SpaceInEmptyParentheses           : false
+SpacesBeforeTrailingComments      : 1
+SpacesInAngles                    : false
+SpacesInCStyleCastParentheses     : false
+SpacesInConditionalStatement      : false
+SpacesInParentheses               : false
+SpacesInSquareBrackets            : false
+# Empty lines
+MaxEmptyLinesToKeep              : 1
+EmptyLineBeforeAccessModifier    : Always
+KeepEmptyLinesAtTheStartOfBlocks : false
+# Namespaces
+FixNamespaceComments : false
+# Includes
+IncludeBlocks : Preserve
+SortIncludes  : true
+# Commas
+InsertTrailingCommas : None
+# Using
+SortUsingDeclarations : true

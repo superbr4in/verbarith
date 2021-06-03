@@ -30,7 +30,7 @@ namespace fml
     template <typename T>
     expression<T> expression_model::apply(expression<T> const& value) const
     {
-        if (_Z3_ast* application_resource { }; base_->apply(Z3_model_eval, *value.base_, false, &application_resource))
+        if (_Z3_ast * application_resource{}; base_->apply(Z3_model_eval, *value.base_, false, &application_resource))
             return expression<T>(z3_ast(application_resource));
 
         throw std::logic_error("Invalid expression");
@@ -64,9 +64,9 @@ namespace fml
 
 #define EXPRESSION(T) expression<TYPE(T)>
 
-template fml::expression<>      fml::expression_model::apply(expression<>     const&) const;
-template fml::expression<bool>  fml::expression_model::apply(expression<bool> const&) const;
+template fml::expression<> fml::expression_model::apply(expression<> const&) const;
+template fml::expression<bool> fml::expression_model::apply(expression<bool> const&) const;
 
-#define INSTANTIATE_APPLY(T)\
-    template fml::EXPRESSION(T) fml::expression_model::apply(EXPRESSION(T)    const&) const;
+#define INSTANTIATE_APPLY(T) \
+    template fml::EXPRESSION(T) fml::expression_model::apply(EXPRESSION(T) const&) const;
 LOOP_TYPES_0(INSTANTIATE_APPLY);

@@ -8,20 +8,22 @@
 
 namespace fml
 {
+    // clang-format off
     template <typename Function, typename... Arguments>
     concept invocable =
-        requires (Function&& function, Arguments&&... arguments)
+        requires(Function&& function, Arguments&&... arguments)
         {
             { std::invoke(std::forward<Function>(function), std::forward<Arguments>(arguments)...) };
         };
     template <typename Function, typename Result, typename... Arguments>
     concept invocable_result =
-        requires (Function&& function, Arguments&&... arguments)
+        requires(Function&& function, Arguments&&... arguments)
         {
             { std::invoke(std::forward<Function>(function), std::forward<Arguments>(arguments)...) } -> std::same_as<Result>;
         };
+    // clang-format on
 
-    template <typename Value, typename ValueBase = void, void (_Z3_context*, ValueBase*) = nullptr, void (_Z3_context*, ValueBase*) = nullptr>
+    template <typename Value, typename ValueBase = void, void(_Z3_context*, ValueBase*) = nullptr, void(_Z3_context*, ValueBase*) = nullptr>
     class z3_resource
     {
         struct deleter
@@ -31,7 +33,6 @@ namespace fml
         class pointer : std::unique_ptr<Value, deleter>
         {
         public:
-
             explicit pointer(Value*) noexcept;
             void reset(Value*) noexcept;
 
@@ -41,7 +42,6 @@ namespace fml
         pointer base_;
 
     public:
-
         explicit z3_resource(Value*) noexcept;
 
         template <typename... Arguments, invocable_result<Value*, _Z3_context*, Arguments...> Applicator>
@@ -72,7 +72,6 @@ namespace fml
         Value* base_;
 
     public:
-
         explicit z3_resource(Value*) noexcept;
 
         template <typename... Arguments, invocable_result<Value*, _Z3_context*, Arguments...> Applicator>

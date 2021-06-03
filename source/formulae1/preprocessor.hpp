@@ -1,5 +1,7 @@
 #pragma once
 
+// clang-format off
+
 #define LOOP_0(count, action, ...) LOOP_##count##_0(action, __VA_ARGS__)
 #define LOOP_1(count, action, ...) LOOP_##count##_1(action, __VA_ARGS__)
 #define LOOP_2(count, action, ...) LOOP_##count##_2(action, __VA_ARGS__)
@@ -460,3 +462,5 @@
 #define IF_NOT_EQUAL_15_13(action) action
 #define IF_NOT_EQUAL_15_14(action) action
 #define IF_NOT_EQUAL_15_15(action)
+
+// clang-format on

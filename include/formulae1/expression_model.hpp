@@ -24,7 +24,6 @@ namespace fml
         explicit expression_model(z3_model) noexcept;
 
     public:
-
         ~expression_model() noexcept;
 
         expression_model(expression_model const&) noexcept;
@@ -40,7 +39,6 @@ namespace fml
         friend std::wostream& operator<<(std::wostream&, expression_model const&) noexcept;
 
     private:
-
         [[nodiscard]] std::string representation() const noexcept;
     };
 }

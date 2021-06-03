@@ -22,7 +22,6 @@ namespace fml
         std::unique_ptr<z3_solver> base_;
 
     public:
-
         expression_solver() noexcept;
 
         ~expression_solver() noexcept;
