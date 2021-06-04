@@ -110,8 +110,7 @@ namespace fml
         explicit expression(z3_ast) noexcept;
 
     public:
-        // NOLINTNEXTLINE [hicpp-explicit-conversions]
-        expression(bool) noexcept;
+        explicit expression(bool) noexcept;
 
         [[nodiscard]] static expression symbol(std::string const& symbol);
 
@@ -148,8 +147,7 @@ namespace fml
         explicit expression(z3_ast) noexcept;
 
     public:
-        // NOLINTNEXTLINE [hicpp-explicit-conversions]
-        expression(T value) noexcept;
+        explicit expression(T) noexcept;
 
         [[nodiscard]] static expression symbol(std::string const& symbol);
 
@@ -207,48 +205,37 @@ namespace fml
     template <integral_expression_typename T>
     [[nodiscard]] expression<T> operator+(expression<T>, expression<T> const&) noexcept;
     template <integral_expression_typename T>
-    [[nodiscard]] expression<T> operator+(expression<T>, T) noexcept;
-    template <integral_expression_typename T>
     [[nodiscard]] expression<T> operator-(expression<T>, expression<T> const&) noexcept;
-    template <integral_expression_typename T>
-    [[nodiscard]] expression<T> operator-(expression<T>, T) noexcept;
     template <integral_expression_typename T>
     [[nodiscard]] expression<T> operator*(expression<T>, expression<T> const&) noexcept;
     template <integral_expression_typename T>
-    [[nodiscard]] expression<T> operator*(expression<T>, T) noexcept;
-    template <integral_expression_typename T>
     [[nodiscard]] expression<T> operator/(expression<T>, expression<T> const&) noexcept;
-    template <integral_expression_typename T>
-    [[nodiscard]] expression<T> operator/(expression<T>, T) noexcept;
     template <integral_expression_typename T>
     [[nodiscard]] expression<T> operator%(expression<T>, expression<T> const&) noexcept;
     template <integral_expression_typename T>
-    [[nodiscard]] expression<T> operator%(expression<T>, T) noexcept;
-    template <integral_expression_typename T>
     [[nodiscard]] expression<T> operator&(expression<T>, expression<T> const&) noexcept;
-    template <integral_expression_typename T>
-    [[nodiscard]] expression<T> operator&(expression<T>, T) noexcept;
     template <integral_expression_typename T>
     [[nodiscard]] expression<T> operator|(expression<T>, expression<T> const&) noexcept;
     template <integral_expression_typename T>
-    [[nodiscard]] expression<T> operator|(expression<T>, T) noexcept;
-    template <integral_expression_typename T>
     [[nodiscard]] expression<T> operator^(expression<T>, expression<T> const&) noexcept;
-    template <integral_expression_typename T>
-    [[nodiscard]] expression<T> operator^(expression<T>, T) noexcept;
 
     template <integral_expression_typename T>
     [[nodiscard]] expression<T> operator<<(expression<T>, expression<T> const&) noexcept;
     template <integral_expression_typename T>
-    [[nodiscard]] expression<T> operator<<(expression<T>, T) noexcept;
-    template <integral_expression_typename T>
     [[nodiscard]] expression<T> operator>>(expression<T>, expression<T> const&) noexcept;
-    template <integral_expression_typename T>
-    [[nodiscard]] expression<T> operator>>(expression<T>, T) noexcept;
 
     template <typename T>
     expression(T) -> expression<T>;
 }
+
+fml::expression<std::int8_t> operator""_e8(unsigned long long int);
+fml::expression<std::int16_t> operator""_e16(unsigned long long int);
+fml::expression<std::int32_t> operator""_e32(unsigned long long int);
+fml::expression<std::int64_t> operator""_e64(unsigned long long int);
+fml::expression<std::uint8_t> operator""_eU8(unsigned long long int);
+fml::expression<std::uint16_t> operator""_eU16(unsigned long long int);
+fml::expression<std::uint32_t> operator""_eU32(unsigned long long int);
+fml::expression<std::uint64_t> operator""_eU64(unsigned long long int);
 
 namespace std
 {

@@ -548,7 +548,7 @@ namespace fml
             auto result = concatenate<U, sizeof(U)>(
                 [this]<std::size_t INDEX>()
                 {
-                    auto const advanced = *this + static_cast<T>(INDEX);
+                    auto const advanced = *this + expression(static_cast<T>(INDEX));
                     auto* const advanced_resource = static_cast<_Z3_ast*>(*advanced.base_);
 
                     return expression<std::byte>(z3_ast(Z3_mk_app, indirection, 1, &advanced_resource));
@@ -698,17 +698,7 @@ namespace fml
         return value_1 += value_2;
     }
     template <integral_expression_typename T>
-    expression<T> operator+(expression<T> value_1, T const value_2) noexcept
-    {
-        return value_1 += value_2;
-    }
-    template <integral_expression_typename T>
     expression<T> operator-(expression<T> value_1, expression<T> const& value_2) noexcept
-    {
-        return value_1 -= value_2;
-    }
-    template <integral_expression_typename T>
-    expression<T> operator-(expression<T> value_1, T const value_2) noexcept
     {
         return value_1 -= value_2;
     }
@@ -718,17 +708,7 @@ namespace fml
         return value_1 *= value_2;
     }
     template <integral_expression_typename T>
-    expression<T> operator*(expression<T> value_1, T const value_2) noexcept
-    {
-        return value_1 *= value_2;
-    }
-    template <integral_expression_typename T>
     expression<T> operator/(expression<T> value_1, expression<T> const& value_2) noexcept
-    {
-        return value_1 /= value_2;
-    }
-    template <integral_expression_typename T>
-    expression<T> operator/(expression<T> value_1, T const value_2) noexcept
     {
         return value_1 /= value_2;
     }
@@ -738,17 +718,7 @@ namespace fml
         return value_1 %= value_2;
     }
     template <integral_expression_typename T>
-    expression<T> operator%(expression<T> value_1, T const value_2) noexcept
-    {
-        return value_1 %= value_2;
-    }
-    template <integral_expression_typename T>
     expression<T> operator&(expression<T> value_1, expression<T> const& value_2) noexcept
-    {
-        return value_1 &= value_2;
-    }
-    template <integral_expression_typename T>
-    expression<T> operator&(expression<T> value_1, T const value_2) noexcept
     {
         return value_1 &= value_2;
     }
@@ -758,17 +728,7 @@ namespace fml
         return value_1 |= value_2;
     }
     template <integral_expression_typename T>
-    expression<T> operator|(expression<T> value_1, T const value_2) noexcept
-    {
-        return value_1 |= value_2;
-    }
-    template <integral_expression_typename T>
     expression<T> operator^(expression<T> value_1, expression<T> const& value_2) noexcept
-    {
-        return value_1 ^= value_2;
-    }
-    template <integral_expression_typename T>
-    expression<T> operator^(expression<T> value_1, T const value_2) noexcept
     {
         return value_1 ^= value_2;
     }
@@ -779,20 +739,43 @@ namespace fml
         return value_1 <<= value_2;
     }
     template <integral_expression_typename T>
-    expression<T> operator<<(expression<T> value_1, T const value_2) noexcept
-    {
-        return value_1 <<= value_2;
-    }
-    template <integral_expression_typename T>
     expression<T> operator>>(expression<T> value_1, expression<T> const& value_2) noexcept
     {
         return value_1 >>= value_2;
     }
-    template <integral_expression_typename T>
-    expression<T> operator>>(expression<T> value_1, T const value_2) noexcept
-    {
-        return value_1 >>= value_2;
-    }
+}
+
+fml::expression<std::int8_t> operator""_e8(unsigned long long int const value)
+{
+    return fml::expression<std::int8_t>(static_cast<std::int8_t>(value));
+}
+fml::expression<std::int16_t> operator""_e16(unsigned long long int const value)
+{
+    return fml::expression<std::int16_t>(static_cast<std::int16_t>(value));
+}
+fml::expression<std::int32_t> operator""_e32(unsigned long long int const value)
+{
+    return fml::expression<std::int32_t>(static_cast<std::int32_t>(value));
+}
+fml::expression<std::int64_t> operator""_e64(unsigned long long int const value)
+{
+    return fml::expression<std::int64_t>(static_cast<std::int64_t>(value));
+}
+fml::expression<std::uint8_t> operator""_eU8(unsigned long long int const value)
+{
+    return fml::expression<std::uint8_t>(static_cast<std::uint8_t>(value));
+}
+fml::expression<std::uint16_t> operator""_eU16(unsigned long long int const value)
+{
+    return fml::expression<std::uint16_t>(static_cast<std::uint16_t>(value));
+}
+fml::expression<std::uint32_t> operator""_eU32(unsigned long long int const value)
+{
+    return fml::expression<std::uint32_t>(static_cast<std::uint32_t>(value));
+}
+fml::expression<std::uint64_t> operator""_eU64(unsigned long long int const value)
+{
+    return fml::expression<std::uint64_t>(static_cast<std::uint64_t>(value));
 }
 
 namespace std // NOLINT [cert-dcl58-cpp]
@@ -856,25 +839,15 @@ LOOP_TYPES_0(INSTANTIATE_BOOLEAN_EXPRESSION);
     template std::ostream& fml::operator<<(std::ostream&, EXPRESSION(T) const&); \
     template std::wostream& fml::operator<<(std::wostream&, EXPRESSION(T) const&); \
     template fml::EXPRESSION(T) fml::operator+(EXPRESSION(T), EXPRESSION(T) const&); \
-    template fml::EXPRESSION(T) fml::operator+(EXPRESSION(T), TYPE(T)); \
     template fml::EXPRESSION(T) fml::operator-(EXPRESSION(T), EXPRESSION(T) const&); \
-    template fml::EXPRESSION(T) fml::operator-(EXPRESSION(T), TYPE(T)); \
     template fml::EXPRESSION(T) fml::operator*(EXPRESSION(T), EXPRESSION(T) const&); \
-    template fml::EXPRESSION(T) fml::operator*(EXPRESSION(T), TYPE(T)); \
     template fml::EXPRESSION(T) fml::operator/(EXPRESSION(T), EXPRESSION(T) const&); \
-    template fml::EXPRESSION(T) fml::operator/(EXPRESSION(T), TYPE(T)); \
     template fml::EXPRESSION(T) fml::operator%(EXPRESSION(T), EXPRESSION(T) const&); \
-    template fml::EXPRESSION(T) fml::operator%(EXPRESSION(T), TYPE(T)); \
     template fml::EXPRESSION(T) fml::operator&(EXPRESSION(T), EXPRESSION(T) const&); \
-    template fml::EXPRESSION(T) fml::operator&(EXPRESSION(T), TYPE(T)); \
     template fml::EXPRESSION(T) fml::operator|(EXPRESSION(T), EXPRESSION(T) const&); \
-    template fml::EXPRESSION(T) fml::operator|(EXPRESSION(T), TYPE(T)); \
     template fml::EXPRESSION(T) fml::operator^(EXPRESSION(T), EXPRESSION(T) const&); \
-    template fml::EXPRESSION(T) fml::operator^(EXPRESSION(T), TYPE(T)); \
     template fml::EXPRESSION(T) fml::operator<<(EXPRESSION(T), EXPRESSION(T) const&); \
-    template fml::EXPRESSION(T) fml::operator<<(EXPRESSION(T), TYPE(T)); \
     template fml::EXPRESSION(T) fml::operator>>(EXPRESSION(T), EXPRESSION(T) const&); \
-    template fml::EXPRESSION(T) fml::operator>>(EXPRESSION(T), TYPE(T)); \
     template class fml::EXPRESSION(T); \
     template class std::hash<fml::EXPRESSION(T)>; \
     LOOP_TYPES_1(INSTANTIATE_EXPRESSION_SQUARE, T);
