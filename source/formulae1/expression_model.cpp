@@ -52,11 +52,14 @@ namespace fml
 
     std::string expression_model::representation() const noexcept
     {
+        static std::regex const regex_line_break_trailing(R"(\n *$)");
+        static std::regex const regex_line_break(R"(\n *)");
+
         std::string string(base_->apply(Z3_model_to_string));
 
         // Remove line breaks
-        string = std::regex_replace(string, std::regex(R"(\n *$)"), "");
-        string = std::regex_replace(string, std::regex(R"(\n *)"), ", ");
+        string = std::regex_replace(string, regex_line_break_trailing, "");
+        string = std::regex_replace(string, regex_line_break, ", ");
 
         return string;
     }
