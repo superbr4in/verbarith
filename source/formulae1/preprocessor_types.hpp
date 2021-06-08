@@ -622,33 +622,42 @@ LOOP_TYPES_0(  ASSERT_TYPE);
 #undef  SINGLE_ASSERT_TYPE
 #undef         ASSERT_TYPE
 
+// NOLINTNEXTLINE [cppcoreguidelines-macro-usage]
 #define SINGLE_ASSERT_TYPE_SIZE_DIVIDE(T, U)\
     static_assert(TYPE_SIZE_DIVIDE(T, U) == sizeof(TYPE(T)) / sizeof(TYPE(U)));
+// NOLINTNEXTLINE [cppcoreguidelines-macro-usage]
 #define        ASSERT_TYPE_SIZE_DIVIDE(T) LOOP_TYPES_1(SINGLE_ASSERT_TYPE_SIZE_DIVIDE, T);
-LOOP_TYPES_0(  ASSERT_TYPE_SIZE_DIVIDE); // NOLINT [bugprone-sizeof-expression]
+LOOP_TYPES_0(  ASSERT_TYPE_SIZE_DIVIDE);
 #undef  SINGLE_ASSERT_TYPE_SIZE_DIVIDE
 #undef         ASSERT_TYPE_SIZE_DIVIDE
 
+// NOLINTNEXTLINE [cppcoreguidelines-macro-usage]
 #define SINGLE_ASSERT_LOOP_TYPE_SIZE_DIVIDE_FUNCTION(index) " "
+// NOLINTNEXTLINE [cppcoreguidelines-macro-usage]
 #define SINGLE_ASSERT_LOOP_TYPE_SIZE_DIVIDE(T, U)\
     static_assert(sizeof "" LOOP_TYPE_SIZE_DIVIDE_2(T, U, SINGLE_ASSERT_LOOP_TYPE_SIZE_DIVIDE_FUNCTION) == sizeof(TYPE(T)) / sizeof(TYPE(U)) + 1);
+// NOLINTNEXTLINE [cppcoreguidelines-macro-usage]
 #define        ASSERT_LOOP_TYPE_SIZE_DIVIDE(T) LOOP_TYPES_1(SINGLE_ASSERT_LOOP_TYPE_SIZE_DIVIDE, T);
-LOOP_TYPES_0(  ASSERT_LOOP_TYPE_SIZE_DIVIDE); // NOLINT [bugprone-sizeof-expression]
+LOOP_TYPES_0(  ASSERT_LOOP_TYPE_SIZE_DIVIDE);
 #undef  SINGLE_ASSERT_LOOP_TYPE_SIZE_DIVIDE_FUNCTION
 #undef  SINGLE_ASSERT_LOOP_TYPE_SIZE_DIVIDE
 #undef         ASSERT_LOOP_TYPE_SIZE_DIVIDE
 
+// NOLINTNEXTLINE [cppcoreguidelines-macro-usage]
 #define SINGLE_ASSERT_TYPE_SIZE_EQUAL(T, U)\
     static_assert(sizeof(TYPE(T)) == sizeof(TYPE(U)) ? IF_TYPE_SIZE_EQUAL(T, U, 1) + 0 : IF_TYPE_SIZE_EQUAL(T, U, 1) - 1);
+// NOLINTNEXTLINE [cppcoreguidelines-macro-usage]
 #define        ASSERT_TYPE_SIZE_EQUAL(T) LOOP_TYPES_1(SINGLE_ASSERT_TYPE_SIZE_EQUAL, T);
 LOOP_TYPES_0(  ASSERT_TYPE_SIZE_EQUAL);
 #undef  SINGLE_ASSERT_TYPE_SIZE_EQUAL
 #undef         ASSERT_TYPE_SIZE_EQUAL
 
+// NOLINTNEXTLINE [cppcoreguidelines-macro-usage]
 #define SINGLE_ASSERT_TYPE_SIZE_DIVIDABLE(T, U)\
     static_assert(sizeof(TYPE(T)) / sizeof(TYPE(U)) != 0 ? IF_TYPE_SIZE_DIVIDABLE(T, U, 1) + 0 : IF_TYPE_SIZE_DIVIDABLE(T, U, 1) - 1);
+// NOLINTNEXTLINE [cppcoreguidelines-macro-usage]
 #define        ASSERT_TYPE_SIZE_DIVIDABLE(T) LOOP_TYPES_1(SINGLE_ASSERT_TYPE_SIZE_DIVIDABLE, T);
-LOOP_TYPES_0(  ASSERT_TYPE_SIZE_DIVIDABLE); // NOLINT [bugprone-sizeof-expression]
+LOOP_TYPES_0(  ASSERT_TYPE_SIZE_DIVIDABLE);
 #undef  SINGLE_ASSERT_TYPE_SIZE_DIVIDABLE
 #undef         ASSERT_TYPE_SIZE_DIVIDABLE
 

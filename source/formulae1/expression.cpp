@@ -789,6 +789,7 @@ namespace std // NOLINT [cert-dcl58-cpp]
     }
 }
 
+// NOLINTNEXTLINE [cppcoreguidelines-macro-usage]
 #define EXPRESSION(T) expression<TYPE(T)>
 
 template fml::expression<> fml::parse_expression(std::string const&);
@@ -796,6 +797,7 @@ template fml::expression<> fml::parse_expression(std::string const&);
 template std::ostream& fml::operator<<(std::ostream&, expression<> const&);
 template std::wostream& fml::operator<<(std::wostream&, expression<> const&);
 
+// NOLINTNEXTLINE [cppcoreguidelines-macro-usage]
 #define INSTANTIATE_ANONYMOUS_EXPRESSION(T) \
     template fml::expression<>::expression(EXPRESSION(T) const&); \
     template fml::expression<>& fml::expression<>::operator=(EXPRESSION(T) const&); \
@@ -811,17 +813,21 @@ template fml::expression<bool> fml::parse_expression(std::string const&);
 template std::ostream& fml::operator<<(std::ostream&, expression<bool> const&);
 template std::wostream& fml::operator<<(std::wostream&, expression<bool> const&);
 
+// NOLINTNEXTLINE [cppcoreguidelines-macro-usage]
 #define INSTANTIATE_BOOLEAN_EXPRESSION(T) \
     template fml::expression<bool>::expression(EXPRESSION(T) const&);
 LOOP_TYPES_0(INSTANTIATE_BOOLEAN_EXPRESSION);
 
+// NOLINTNEXTLINE [cppcoreguidelines-macro-usage]
 #define INSTANTIATE_EXPRESSION_SQUARE_INDEXED(T, U, index) \
     template fml::EXPRESSION(U) fml::EXPRESSION(T)::extract<TYPE(U), index>() const;
+// NOLINTNEXTLINE [cppcoreguidelines-macro-usage]
 #define INSTANTIATE_EXPRESSION_SQUARE(T, U) \
     IF_NOT_EQUAL(T, U, template fml::EXPRESSION(T)::expression(EXPRESSION(U) const&)); \
     IF_TYPE_SIZE_DIVIDABLE(T, U, template fml::EXPRESSION(T) fml::EXPRESSION(T)::join(std::array<EXPRESSION(U), TYPE_SIZE_DIVIDE(T, U)> const&)); \
     template fml::EXPRESSION(U) fml::EXPRESSION(T)::dereference() const; \
     LOOP_TYPE_SIZE_DIVIDE_2(T, U, INSTANTIATE_EXPRESSION_SQUARE_INDEXED, T, U);
+// NOLINTNEXTLINE [cppcoreguidelines-macro-usage]
 #define INSTANTIATE_EXPRESSION(T) \
     template fml::EXPRESSION(T) fml::parse_expression(std::string const&); \
     template std::ostream& fml::operator<<(std::ostream&, EXPRESSION(T) const&); \

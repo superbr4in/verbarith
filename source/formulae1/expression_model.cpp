@@ -66,11 +66,13 @@ namespace fml
     }
 }
 
+// NOLINTNEXTLINE [cppcoreguidelines-macro-usage]
 #define EXPRESSION(T) expression<TYPE(T)>
 
 template fml::expression<> fml::expression_model::apply(expression<> const&) const;
 template fml::expression<bool> fml::expression_model::apply(expression<bool> const&) const;
 
+// NOLINTNEXTLINE [cppcoreguidelines-macro-usage]
 #define INSTANTIATE_APPLY(T) \
     template fml::EXPRESSION(T) fml::expression_model::apply(EXPRESSION(T) const&) const;
 LOOP_TYPES_0(INSTANTIATE_APPLY);
