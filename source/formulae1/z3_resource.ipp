@@ -36,14 +36,14 @@ namespace fml
     { }
 
     template <typename Value, typename ValueBase, void INC(_Z3_context*, ValueBase*), void DEC(_Z3_context*, ValueBase*)>
-    template <typename... Arguments, invocable_result<Value*, _Z3_context*, Arguments...> Applicator>
-    z3_resource<Value, ValueBase, INC, DEC>::z3_resource(Applicator&& applicator, Arguments&&... arguments) noexcept :
-        base_(std::invoke(std::forward<Applicator>(applicator), z3_resource_context::instance(), std::forward<Arguments>(arguments)...))
+    template <typename... Arguments>
+    z3_resource<Value, ValueBase, INC, DEC>::z3_resource(z3_invocable_output<Value, Arguments...> auto const& applicator, Arguments&&... arguments) noexcept :
+        base_(applicator(z3_resource_context::instance(), std::forward<Arguments>(arguments)...))
     { }
     template <typename Value>
-    template <typename... Arguments, invocable_result<Value*, _Z3_context*, Arguments...> Applicator>
-    z3_resource<Value>::z3_resource(Applicator&& applicator, Arguments&&... arguments) noexcept :
-        base_(std::invoke(std::forward<Applicator>(applicator), z3_resource_context::instance(), std::forward<Arguments>(arguments)...))
+    template <typename... Arguments>
+    z3_resource<Value>::z3_resource(z3_invocable_output<Value, Arguments...> auto const& applicator, Arguments&&... arguments) noexcept :
+        base_(applicator(z3_resource_context::instance(), std::forward<Arguments>(arguments)...))
     { }
 
     template <typename Value, typename ValueBase, void INC(_Z3_context*, ValueBase*), void DEC(_Z3_context*, ValueBase*)>
@@ -71,40 +71,28 @@ namespace fml
     }
 
     template <typename Value, typename ValueBase, void INC(_Z3_context*, ValueBase*), void DEC(_Z3_context*, ValueBase*)>
-    template <typename... Arguments, invocable<_Z3_context*, Value*, Arguments...> Applicator>
-    std::invoke_result_t<Applicator, _Z3_context*, Value*, Arguments...> z3_resource<Value, ValueBase, INC, DEC>::apply(Applicator&& applicator, Arguments&&... arguments) noexcept
+    template <typename... Arguments>
+    decltype(auto) z3_resource<Value, ValueBase, INC, DEC>::apply(z3_invocable_input<Value, Arguments...> auto const& applicator, Arguments&&... arguments) noexcept
     {
-        return std::invoke(std::forward<Applicator>(applicator), z3_resource_context::instance(), base_.get(), std::forward<Arguments>(arguments)...);
+        return applicator(z3_resource_context::instance(), base_.get(), std::forward<Arguments>(arguments)...);
     }
     template <typename Value>
-    template <typename... Arguments, invocable<_Z3_context*, Value*, Arguments...> Applicator>
-    std::invoke_result_t<Applicator, _Z3_context*, Value*, Arguments...> z3_resource<Value>::apply(Applicator&& applicator, Arguments&&... arguments) noexcept
+    template <typename... Arguments>
+    decltype(auto) z3_resource<Value>::apply(z3_invocable_input<Value, Arguments...> auto const& applicator, Arguments&&... arguments) noexcept
     {
-        return std::invoke(std::forward<Applicator>(applicator), z3_resource_context::instance(), base_, std::forward<Arguments>(arguments)...);
+        return applicator(z3_resource_context::instance(), base_, std::forward<Arguments>(arguments)...);
     }
 
     template <typename Value, typename ValueBase, void INC(_Z3_context*, ValueBase*), void DEC(_Z3_context*, ValueBase*)>
-    template <typename... Arguments, invocable_result<Value*, _Z3_context*, Arguments...> Applicator>
-    void z3_resource<Value, ValueBase, INC, DEC>::update_2(Applicator&& applicator, Arguments&&... arguments) noexcept
+    template <typename... Arguments>
+    void z3_resource<Value, ValueBase, INC, DEC>::update(z3_invocable_output<Value, Arguments...> auto const& applicator, Arguments&&... arguments) noexcept
     {
-        base_.reset(std::invoke(std::forward<Applicator>(applicator), z3_resource_context::instance(), std::forward<Arguments>(arguments)...));
-    }
-    template <typename Value>
-    template <typename... Arguments, invocable_result<Value*, _Z3_context*, Arguments...> Applicator>
-    void z3_resource<Value>::update_2(Applicator&& applicator, Arguments&&... arguments) noexcept
-    {
-        base_ = std::invoke(std::forward<Applicator>(applicator), z3_resource_context::instance(), std::forward<Arguments>(arguments)...);
+        base_.reset(applicator(z3_resource_context::instance(), std::forward<Arguments>(arguments)...));
     }
     template <typename Value, typename ValueBase, void INC(_Z3_context*, ValueBase*), void DEC(_Z3_context*, ValueBase*)>
-    template <typename... Arguments, invocable_result<Value*, _Z3_context*, Value*, Arguments...> Applicator>
-    void z3_resource<Value, ValueBase, INC, DEC>::update(Applicator&& applicator, Arguments&&... arguments) noexcept
+    template <typename... Arguments>
+    void z3_resource<Value, ValueBase, INC, DEC>::update_self(z3_invocable_input_output<Value, Arguments...> auto const& applicator, Arguments&&... arguments) noexcept
     {
-        base_.reset(std::invoke(std::forward<Applicator>(applicator), z3_resource_context::instance(), base_.get(), std::forward<Arguments>(arguments)...));
-    }
-    template <typename Value>
-    template <typename... Arguments, invocable_result<Value*, _Z3_context*, Value*, Arguments...> Applicator>
-    void z3_resource<Value>::update(Applicator&& applicator, Arguments&&... arguments) noexcept
-    {
-        base_ = std::invoke(std::forward<Applicator>(applicator), z3_resource_context::instance(), base_, std::forward<Arguments>(arguments)...);
+        base_.reset(applicator(z3_resource_context::instance(), base_.get(), std::forward<Arguments>(arguments)...));
     }
 }

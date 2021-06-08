@@ -9,17 +9,23 @@
 namespace fml
 {
     // clang-format off
-    template <typename Function, typename... Arguments>
-    concept invocable =
-        requires(Function&& function, Arguments&&... arguments)
+    template <typename Function, typename Value, typename... Arguments>
+    concept z3_invocable_input =
+        requires(Function const& function, _Z3_context* const context, Value* const value, Arguments&&... arguments)
         {
-            { std::invoke(std::forward<Function>(function), std::forward<Arguments>(arguments)...) };
+            { function(context, value, std::forward<Arguments>(arguments)...) };
         };
-    template <typename Function, typename Result, typename... Arguments>
-    concept invocable_result =
-        requires(Function&& function, Arguments&&... arguments)
+    template <typename Function, typename Value, typename... Arguments>
+    concept z3_invocable_output =
+        requires(Function const& function, _Z3_context* const context, Arguments&&... arguments)
         {
-            { std::invoke(std::forward<Function>(function), std::forward<Arguments>(arguments)...) } -> std::same_as<Result>;
+            { function(context, std::forward<Arguments>(arguments)...) } -> std::same_as<Value*>;
+        };
+    template <typename Function, typename Value, typename... Arguments>
+    concept z3_invocable_input_output =
+        requires(Function const& function, _Z3_context* const context, Value* const value, Arguments&&... arguments)
+        {
+            { function(context, value, std::forward<Arguments>(arguments)...) } -> std::same_as<Value*>;
         };
     // clang-format on
 
@@ -44,8 +50,8 @@ namespace fml
     public:
         explicit z3_resource(Value*) noexcept;
 
-        template <typename... Arguments, invocable_result<Value*, _Z3_context*, Arguments...> Applicator>
-        explicit z3_resource(Applicator&&, Arguments&&...) noexcept;
+        template <typename... Arguments>
+        explicit z3_resource(z3_invocable_output<Value, Arguments...> auto const&, Arguments&&...) noexcept;
 
         ~z3_resource() noexcept = default;
 
@@ -58,13 +64,13 @@ namespace fml
         // NOLINTNEXTLINE [hicpp-explicit-conversions]
         [[nodiscard]] operator Value*() const noexcept;
 
-        template <typename... Arguments, invocable<_Z3_context*, Value*, Arguments...> Applicator>
-        [[nodiscard]] std::invoke_result_t<Applicator, _Z3_context*, Value*, Arguments...> apply(Applicator&&, Arguments&&...) noexcept;
+        template <typename... Arguments>
+        [[nodiscard]] decltype(auto) apply(z3_invocable_input<Value, Arguments...> auto const&, Arguments&&...) noexcept;
 
-        template <typename... Arguments, invocable_result<Value*, _Z3_context*, Arguments...> Applicator>
-        void update_2(Applicator&&, Arguments&&...) noexcept;
-        template <typename... Arguments, invocable_result<Value*, _Z3_context*, Value*, Arguments...> Applicator>
-        void update(Applicator&&, Arguments&&...) noexcept;
+        template <typename... Arguments>
+        void update(z3_invocable_output<Value, Arguments...> auto const&, Arguments&&...) noexcept;
+        template <typename... Arguments>
+        void update_self(z3_invocable_input_output<Value, Arguments...> auto const&, Arguments&&...) noexcept;
     };
     template <typename Value>
     class z3_resource<Value, void, nullptr, nullptr>
@@ -74,18 +80,13 @@ namespace fml
     public:
         explicit z3_resource(Value*) noexcept;
 
-        template <typename... Arguments, invocable_result<Value*, _Z3_context*, Arguments...> Applicator>
-        explicit z3_resource(Applicator&&, Arguments&&...) noexcept;
+        template <typename... Arguments>
+        explicit z3_resource(z3_invocable_output<Value, Arguments...> auto const&, Arguments&&...) noexcept;
 
         // NOLINTNEXTLINE [hicpp-explicit-conversions]
         [[nodiscard]] operator Value*() const noexcept;
 
-        template <typename... Arguments, invocable<_Z3_context*, Value*, Arguments...> Applicator>
-        [[nodiscard]] std::invoke_result_t<Applicator, _Z3_context*, Value*, Arguments...> apply(Applicator&&, Arguments&&...) noexcept;
-
-        template <typename... Arguments, invocable_result<Value*, _Z3_context*, Arguments...> Applicator>
-        void update_2(Applicator&&, Arguments&&...) noexcept;
-        template <typename... Arguments, invocable_result<Value*, _Z3_context*, Value*, Arguments...> Applicator>
-        void update(Applicator&&, Arguments&&...) noexcept;
+        template <typename... Arguments>
+        [[nodiscard]] decltype(auto) apply(z3_invocable_input<Value, Arguments...> auto const&, Arguments&&...) noexcept;
     };
 }

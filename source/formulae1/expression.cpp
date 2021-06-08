@@ -31,11 +31,11 @@ namespace fml
     expression<T> parse_expression(std::string const& string)
     {
         // TODO: Reset error handler
-        z3_ast_vector parsed_string(Z3_parse_smtlib2_string, string.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
+        z3_ast_vector parsed_string(Z3_parse_smtlib2_string, string.c_str(), 0U, nullptr, nullptr, 0U, nullptr, nullptr);
         if (parsed_string.apply(Z3_ast_vector_size) != 1)
             throw std::invalid_argument("Parsing error");
 
-        z3_ast ast(Z3_ast_vector_get, parsed_string, 0);
+        z3_ast ast(Z3_ast_vector_get, parsed_string, 0U);
         if constexpr (std::same_as<T, bool>)
         {
             if (z3_sort(Z3_get_sort, ast).apply(Z3_get_sort_kind) != Z3_BOOL_SORT)
@@ -185,7 +185,7 @@ namespace fml
         }
 
         std::unordered_set<std::string> dependencies;
-        for (std::size_t argument_index = 0; argument_index < argument_count; ++argument_index)
+        for (auto argument_index = 0U; argument_index < argument_count; ++argument_index)
         {
             expression const child(z3_ast(Z3_get_app_arg, base_application, argument_index));
 
@@ -203,11 +203,11 @@ namespace fml
         if (argument_count == 1 && z3_func_decl(Z3_get_app_decl, base_application).apply(Z3_get_decl_name) == indirection_symbol)
         {
             // Dependency by itself
-            return {expression(z3_ast(Z3_get_app_arg, base_application, 0))};
+            return {expression(z3_ast(Z3_get_app_arg, base_application, 0U))};
         }
 
         std::unordered_set<expression> dependencies;
-        for (std::size_t argument_index = 0; argument_index < argument_count; ++argument_index)
+        for (auto argument_index = 0U; argument_index < argument_count; ++argument_index)
         {
             expression const child(z3_ast(Z3_get_app_arg, base_application, argument_index));
 
@@ -231,8 +231,8 @@ namespace fml
         auto* const key_resource = static_cast<_Z3_ast*>(*key.base_);
         auto* const value_resource = static_cast<_Z3_ast*>(*value.base_);
 
-        base_->update(Z3_substitute, 1, &key_resource, &value_resource);
-        base_->update(Z3_simplify);
+        base_->update_self(Z3_substitute, 1U, &key_resource, &value_resource);
+        base_->update_self(Z3_simplify);
     }
     void expression<>::substitute_indirect(expression const& key_pointer, expression<std::byte> const& value) noexcept
     {
@@ -247,19 +247,19 @@ namespace fml
                 z3_func_decl(
                     Z3_mk_func_decl,
                     indirection_symbol,
-                    1,
+                    1U,
                     &key_pointer_sort_resource,
                     z3_sort(
                         Z3_mk_bv_sort,
-                        CHAR_BIT)),
-                1,
+                        unsigned{CHAR_BIT})),
+                1U,
                 &key_pointer_resource));
 
         auto* const key_resource = static_cast<_Z3_ast*>(*key.base_);
         auto* const value_resource = static_cast<_Z3_ast*>(*value.base_);
 
-        base_->update(Z3_substitute, 1, &key_resource, &value_resource);
-        base_->update(Z3_simplify);
+        base_->update_self(Z3_substitute, 1U, &key_resource, &value_resource);
+        base_->update_self(Z3_simplify);
     }
 
     std::size_t expression<>::size() const noexcept
@@ -300,7 +300,7 @@ namespace fml
     expression<bool>::expression(expression<T> const& other) :
         expression(!other.equals(zero<T>))
     {
-        base_->update(Z3_simplify);
+        base_->update_self(Z3_simplify);
     }
 
     bool expression<bool>::evaluate() const
@@ -321,28 +321,28 @@ namespace fml
     {
         z3_goal reduction_goal(Z3_mk_goal, false, false, false);
         reduction_goal.apply(Z3_goal_assert, *base_);
-        reduction_goal.update_2(
+        reduction_goal.update(
             Z3_apply_result_get_subgoal,
             z3_apply_result(Z3_tactic_apply, z3_tactic(Z3_mk_tactic, "ctx-simplify"), reduction_goal),
-            0);
+            0U);
 
-        base_->update_2(Z3_mk_true);
+        base_->update(Z3_mk_true);
         auto const reduction_goal_size = reduction_goal.apply(Z3_goal_size);
         for (auto index = 0U; index < reduction_goal_size; ++index)
         {
             z3_ast formula(Z3_goal_formula, reduction_goal, index);
 
             std::array<_Z3_ast*, 2> const arguments{*base_, formula};
-            base_->update_2(Z3_mk_and, arguments.size(), arguments.data());
+            base_->update(Z3_mk_and, static_cast<unsigned>(arguments.size()), arguments.data());
         }
-        base_->update(Z3_simplify);
+        base_->update_self(Z3_simplify);
     }
 
     expression<bool> expression<bool>::operator!() const noexcept
     {
         auto copy = *this;
-        copy.base_->update(Z3_mk_not);
-        copy.base_->update(Z3_simplify);
+        copy.base_->update_self(Z3_mk_not);
+        copy.base_->update_self(Z3_simplify);
 
         return copy;
     }
@@ -350,14 +350,14 @@ namespace fml
     expression<bool> expression<bool>::equals(expression const& other) const noexcept
     {
         z3_ast derived(Z3_mk_eq, *base_, *other.base_);
-        derived.update(Z3_simplify);
+        derived.update_self(Z3_simplify);
 
         return expression(std::move(derived));
     }
     expression<bool> expression<bool>::implies(expression const& other) const noexcept
     {
         z3_ast derived(Z3_mk_implies, *base_, *other.base_);
-        derived.update(Z3_simplify);
+        derived.update_self(Z3_simplify);
 
         return expression(std::move(derived));
     }
@@ -365,23 +365,23 @@ namespace fml
     expression<bool>& expression<bool>::operator&=(expression const& other) noexcept
     {
         std::array<_Z3_ast*, 2> const arguments{*base_, *other.base_};
-        base_->update_2(Z3_mk_and, arguments.size(), arguments.data());
-        base_->update(Z3_simplify);
+        base_->update(Z3_mk_and, static_cast<unsigned>(arguments.size()), arguments.data());
+        base_->update_self(Z3_simplify);
 
         return *this;
     }
     expression<bool>& expression<bool>::operator|=(expression const& other) noexcept
     {
         std::array<_Z3_ast*, 2> const arguments{*base_, *other.base_};
-        base_->update_2(Z3_mk_or, arguments.size(), arguments.data());
-        base_->update(Z3_simplify);
+        base_->update(Z3_mk_or, static_cast<unsigned>(arguments.size()), arguments.data());
+        base_->update_self(Z3_simplify);
 
         return *this;
     }
     expression<bool>& expression<bool>::operator^=(expression const& other) noexcept
     {
-        base_->update(Z3_mk_xor, *other.base_);
-        base_->update(Z3_simplify);
+        base_->update_self(Z3_mk_xor, *other.base_);
+        base_->update_self(Z3_simplify);
 
         return *this;
     }
@@ -403,8 +403,8 @@ namespace fml
     expression<T> expression<T>::operator-() const noexcept
     {
         auto copy = *this;
-        copy.base_->update(Z3_mk_bvneg);
-        copy.base_->update(Z3_simplify);
+        copy.base_->update_self(Z3_mk_bvneg);
+        copy.base_->update_self(Z3_simplify);
 
         return copy;
     }
@@ -412,8 +412,8 @@ namespace fml
     expression<T> expression<T>::operator~() const noexcept
     {
         auto copy = *this;
-        copy.base_->update(Z3_mk_bvnot);
-        copy.base_->update(Z3_simplify);
+        copy.base_->update_self(Z3_mk_bvnot);
+        copy.base_->update_self(Z3_simplify);
 
         return copy;
     }
@@ -425,7 +425,7 @@ namespace fml
 
     template <integral_expression_typename T>
     expression<T>::expression(T const value) noexcept :
-        expression(z3_ast(Z3_mk_unsigned_int64, static_cast<std::uint64_t>(value), z3_sort(Z3_mk_bv_sort, sizeof(T) * CHAR_BIT)))
+        expression(z3_ast(Z3_mk_unsigned_int64, static_cast<std::uint64_t>(value), z3_sort(Z3_mk_bv_sort, static_cast<unsigned>(sizeof(T) * CHAR_BIT))))
     { }
 
     template <integral_expression_typename T>
@@ -446,50 +446,42 @@ namespace fml
                 z3_symbol(
                     Z3_mk_string_symbol,
                     symbol.c_str()),
-                z3_sort(Z3_mk_bv_sort, sizeof(T) * CHAR_BIT)));
+                z3_sort(Z3_mk_bv_sort, static_cast<unsigned>(sizeof(T) * CHAR_BIT))));
     }
 
     template <integral_expression_typename T>
     expression<T>::expression(expression<bool> const& other) noexcept :
         expression(*other.base_)
     {
-        base_->update(Z3_mk_ite, *one<T>.base_, *zero<T>.base_);
-        base_->update(Z3_simplify);
+        base_->update_self(Z3_mk_ite, *one<T>.base_, *zero<T>.base_);
+        base_->update_self(Z3_simplify);
     }
 
     template <integral_expression_typename T>
     template <integral_expression_typename U>
-        requires(sizeof(U) == sizeof(T))
-    expression<T>::expression(expression<U> const& other)
-    noexcept :
+    expression<T>::expression(expression<U> const& other) noexcept requires(sizeof(U) == sizeof(T)) :
         expression(*other.base_)
     { }
     template <integral_expression_typename T>
     template <integral_expression_typename U>
-        requires(sizeof(U) > sizeof(T))
-    expression<T>::expression(expression<U> const& other)
-    noexcept :
+    expression<T>::expression(expression<U> const& other) noexcept requires(sizeof(U) > sizeof(T)) :
         expression(*other.base_)
     {
-        base_->update_2(Z3_mk_extract, unsigned{sizeof(T) * CHAR_BIT - 1}, unsigned{0}, *base_);
-        base_->update(Z3_simplify);
+        base_->update(Z3_mk_extract, unsigned{sizeof(T) * CHAR_BIT - 1}, unsigned{0}, *base_);
+        base_->update_self(Z3_simplify);
     }
     template <integral_expression_typename T>
     template <integral_expression_typename U>
-        requires(sizeof(U) < sizeof(T))
-    expression<T>::expression(expression<U> const& other)
-    noexcept :
+    expression<T>::expression(expression<U> const& other) noexcept requires(sizeof(U) < sizeof(T)) :
         expression(*other.base_)
     {
-        base_->update_2(Z3_mk_zero_ext, unsigned{(sizeof(T) - sizeof(U)) * CHAR_BIT}, *base_);
-        base_->update(Z3_simplify);
+        base_->update(Z3_mk_zero_ext, unsigned{(sizeof(T) - sizeof(U)) * CHAR_BIT}, *base_);
+        base_->update_self(Z3_simplify);
     }
 
     template <integral_expression_typename T>
     template <integral_expression_typename U>
-        requires(sizeof(U) <= sizeof(T))
-    expression<T> expression<T>::join(std::array<expression<U>, sizeof(T) / sizeof(U)> const& parts)
-    noexcept
+    expression<T> expression<T>::join(std::array<expression<U>, sizeof(T) / sizeof(U)> const& parts) noexcept requires(sizeof(U) <= sizeof(T))
     {
         if constexpr (sizeof(U) == sizeof(T))
         {
@@ -502,19 +494,17 @@ namespace fml
                 {
                     return std::get<INDEX>(parts);
                 });
-            result.base_->update(Z3_simplify);
+            result.base_->update_self(Z3_simplify);
 
             return result;
         }
     }
     template <integral_expression_typename T>
     template <integral_expression_typename U, std::size_t POSITION>
-        requires(sizeof(T) >= sizeof(U) * (POSITION + 1))
-    expression<U> expression<T>::extract()
-    const noexcept
+    expression<U> expression<T>::extract() const noexcept requires(sizeof(T) >= sizeof(U) * (POSITION + 1))
     {
         z3_ast derived(Z3_mk_extract, unsigned{(sizeof(U) * CHAR_BIT * (POSITION + 1)) - 1}, unsigned{sizeof(U) * CHAR_BIT * POSITION}, *base_);
-        derived.update(Z3_simplify);
+        derived.update_self(Z3_simplify);
 
         return expression<U>(std::move(derived));
     }
@@ -532,16 +522,16 @@ namespace fml
     template <integral_expression_typename U>
     expression<U> expression<T>::dereference() const noexcept
     {
-        static z3_sort const indirection_sort(Z3_mk_bv_sort, sizeof(T) * CHAR_BIT);
+        static z3_sort const indirection_sort(Z3_mk_bv_sort, static_cast<unsigned>(sizeof(T) * CHAR_BIT));
         // NOLINTNEXTLINE [cppcoreguidelines-avoid-non-const-global-variables]
         static auto* const indirection_sort_resource = static_cast<_Z3_sort*>(indirection_sort);
-        static z3_func_decl const indirection(Z3_mk_func_decl, indirection_symbol, 1, &indirection_sort_resource, z3_sort(Z3_mk_bv_sort, CHAR_BIT));
+        static z3_func_decl const indirection(Z3_mk_func_decl, indirection_symbol, 1U, &indirection_sort_resource, z3_sort(Z3_mk_bv_sort, unsigned{CHAR_BIT}));
 
         if constexpr (sizeof(U) == 1)
         {
             auto* const resource = static_cast<_Z3_ast*>(*base_);
 
-            return expression<U>(z3_ast(Z3_mk_app, indirection, 1, &resource));
+            return expression<U>(z3_ast(Z3_mk_app, indirection, 1U, &resource));
         }
         else
         {
@@ -551,9 +541,9 @@ namespace fml
                     auto const advanced = *this + expression(static_cast<T>(INDEX));
                     auto* const advanced_resource = static_cast<_Z3_ast*>(*advanced.base_);
 
-                    return expression<std::byte>(z3_ast(Z3_mk_app, indirection, 1, &advanced_resource));
+                    return expression<std::byte>(z3_ast(Z3_mk_app, indirection, 1U, &advanced_resource));
                 });
-            result.base_->update(Z3_simplify);
+            result.base_->update_self(Z3_simplify);
 
             return result;
         }
@@ -563,7 +553,7 @@ namespace fml
     expression<bool> expression<T>::equals(expression const& other) const noexcept
     {
         z3_ast derived(Z3_mk_eq, *base_, *other.base_);
-        derived.update(Z3_simplify);
+        derived.update_self(Z3_simplify);
 
         return expression<bool>(std::move(derived));
     }
@@ -571,7 +561,7 @@ namespace fml
     expression<bool> expression<T>::less_than(expression const& other) const noexcept
     {
         z3_ast derived(std::is_signed_v<T> ? Z3_mk_bvslt : Z3_mk_bvult, *base_, *other.base_);
-        derived.update(Z3_simplify);
+        derived.update_self(Z3_simplify);
 
         return expression<bool>(std::move(derived));
     }
@@ -590,89 +580,87 @@ namespace fml
     template <integral_expression_typename T>
     expression<T>& expression<T>::operator+=(expression const& other) noexcept
     {
-        base_->update(Z3_mk_bvadd, *other.base_);
-        base_->update(Z3_simplify);
+        base_->update_self(Z3_mk_bvadd, *other.base_);
+        base_->update_self(Z3_simplify);
 
         return *this;
     }
     template <integral_expression_typename T>
     expression<T>& expression<T>::operator-=(expression const& other) noexcept
     {
-        base_->update(Z3_mk_bvsub, *other.base_);
-        base_->update(Z3_simplify);
+        base_->update_self(Z3_mk_bvsub, *other.base_);
+        base_->update_self(Z3_simplify);
 
         return *this;
     }
     template <integral_expression_typename T>
     expression<T>& expression<T>::operator*=(expression const& other) noexcept
     {
-        base_->update(Z3_mk_bvmul, *other.base_);
-        base_->update(Z3_simplify);
+        base_->update_self(Z3_mk_bvmul, *other.base_);
+        base_->update_self(Z3_simplify);
 
         return *this;
     }
     template <integral_expression_typename T>
     expression<T>& expression<T>::operator/=(expression const& other) noexcept
     {
-        base_->update(std::is_signed_v<T> ? Z3_mk_bvsdiv : Z3_mk_bvudiv, *other.base_);
-        base_->update(Z3_simplify);
+        base_->update_self(std::is_signed_v<T> ? Z3_mk_bvsdiv : Z3_mk_bvudiv, *other.base_);
+        base_->update_self(Z3_simplify);
 
         return *this;
     }
     template <integral_expression_typename T>
     expression<T>& expression<T>::operator%=(expression const& other) noexcept
     {
-        base_->update(std::is_signed_v<T> ? Z3_mk_bvsrem : Z3_mk_bvurem, *other.base_);
-        base_->update(Z3_simplify);
+        base_->update_self(std::is_signed_v<T> ? Z3_mk_bvsrem : Z3_mk_bvurem, *other.base_);
+        base_->update_self(Z3_simplify);
 
         return *this;
     }
     template <integral_expression_typename T>
     expression<T>& expression<T>::operator&=(expression const& other) noexcept
     {
-        base_->update(Z3_mk_bvand, *other.base_);
-        base_->update(Z3_simplify);
+        base_->update_self(Z3_mk_bvand, *other.base_);
+        base_->update_self(Z3_simplify);
 
         return *this;
     }
     template <integral_expression_typename T>
     expression<T>& expression<T>::operator|=(expression const& other) noexcept
     {
-        base_->update(Z3_mk_bvor, *other.base_);
-        base_->update(Z3_simplify);
+        base_->update_self(Z3_mk_bvor, *other.base_);
+        base_->update_self(Z3_simplify);
 
         return *this;
     }
     template <integral_expression_typename T>
     expression<T>& expression<T>::operator^=(expression const& other) noexcept
     {
-        base_->update(Z3_mk_bvxor, *other.base_);
-        base_->update(Z3_simplify);
+        base_->update_self(Z3_mk_bvxor, *other.base_);
+        base_->update_self(Z3_simplify);
 
         return *this;
     }
     template <integral_expression_typename T>
     expression<T>& expression<T>::operator<<=(expression const& other) noexcept
     {
-        base_->update(Z3_mk_bvshl, *other.base_);
-        base_->update(Z3_simplify);
+        base_->update_self(Z3_mk_bvshl, *other.base_);
+        base_->update_self(Z3_simplify);
 
         return *this;
     }
     template <integral_expression_typename T>
     expression<T>& expression<T>::operator>>=(expression const& other) noexcept
     {
-        base_->update(Z3_mk_bvlshr, *other.base_);
-        base_->update(Z3_simplify);
+        base_->update_self(Z3_mk_bvlshr, *other.base_);
+        base_->update_self(Z3_simplify);
 
         return *this;
     }
 
     template <integral_expression_typename T>
     template <integral_expression_typename U, std::size_t COUNT, typename Generator>
-        requires(COUNT > 1)
-    expression<U> expression<T>::concatenate(Generator const& generator)
-    noexcept
+    expression<U> expression<T>::concatenate(Generator const& generator) noexcept requires(COUNT > 1)
     {
         auto const& current = generator.template operator()<COUNT - 1>();
 

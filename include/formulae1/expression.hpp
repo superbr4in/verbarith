@@ -154,21 +154,16 @@ namespace fml
         explicit expression(expression<bool> const&) noexcept;
 
         template <integral_expression_typename U>
-            requires(sizeof(U) == sizeof(T))
-        explicit expression(expression<U> const&) noexcept;
+        explicit expression(expression<U> const&) noexcept requires(sizeof(U) == sizeof(T));
         template <integral_expression_typename U>
-            requires(sizeof(U) > sizeof(T))
-        explicit expression(expression<U> const&) noexcept;
+        explicit expression(expression<U> const&) noexcept requires(sizeof(U) > sizeof(T));
         template <integral_expression_typename U>
-            requires(sizeof(U) < sizeof(T))
-        explicit expression(expression<U> const&) noexcept;
+        explicit expression(expression<U> const&) noexcept requires(sizeof(U) < sizeof(T));
 
         template <integral_expression_typename U>
-            requires(sizeof(U) <= sizeof(T))
-        [[nodiscard]] static expression join(std::array<expression<U>, sizeof(T) / sizeof(U)> const&) noexcept;
+        [[nodiscard]] static expression join(std::array<expression<U>, sizeof(T) / sizeof(U)> const&) noexcept requires(sizeof(U) <= sizeof(T));
         template <integral_expression_typename U, std::size_t POSITION>
-            requires(sizeof(T) >= sizeof(U) * (POSITION + 1))
-        [[nodiscard]] expression<U> extract() const noexcept;
+        [[nodiscard]] expression<U> extract() const noexcept requires(sizeof(T) >= sizeof(U) * (POSITION + 1));
 
         [[nodiscard]] T evaluate() const;
 
@@ -198,8 +193,7 @@ namespace fml
 
     private:
         template <integral_expression_typename U, std::size_t COUNT, typename Generator>
-            requires(COUNT > 1)
-        [[nodiscard]] static expression<U> concatenate(Generator const&) noexcept;
+        [[nodiscard]] static expression<U> concatenate(Generator const&) noexcept requires(COUNT > 1);
     };
 
     template <integral_expression_typename T>

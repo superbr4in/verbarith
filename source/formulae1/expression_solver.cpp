@@ -28,7 +28,7 @@ namespace fml
     {
         auto* const value_resource = static_cast<_Z3_ast*>(*value.base_);
 
-        switch (base_->apply(Z3_solver_check_assumptions, 1, &value_resource))
+        switch (base_->apply(Z3_solver_check_assumptions, 1U, &value_resource))
         {
         case Z3_L_FALSE:
             return std::nullopt;
