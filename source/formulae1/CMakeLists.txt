@@ -1,7 +1,6 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.20)
 
 file(GLOB SOURCE_FILES *.cpp)
-
 add_library(formulae1
   SHARED
     ${SOURCE_FILES})

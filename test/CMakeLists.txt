@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.20)
 
 execute_process(COMMAND tput cols
   RESULT_VARIABLE
@@ -10,4 +10,8 @@ if (TPUT_RESULT EQUAL 0)
   add_compile_definitions(CATCH_CONFIG_CONSOLE_WIDTH=${CONSOLE_WIDTH})
 endif ()
 
+# ---------------------------------------------------------------------------- #
+
 add_subdirectory(formulae1)
+
+# ---------------------------------------------------------------------------- #

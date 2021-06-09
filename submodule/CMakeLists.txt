@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.20)
 
 set(Z3_BUILD_DOCUMENTATION   OFF)
 set(Z3_BUILD_DOTNET_BINDINGS OFF)
@@ -10,7 +10,11 @@ set(Z3_BUILD_PYTHON_BINDINGS OFF)
 set(Z3_ENABLE_EXAMPLE_TARGETS       OFF)
 set(Z3_ENABLE_TRACING_FOR_NON_DEBUG OFF)
 
+# ---------------------------------------------------------------------------- #
+
 add_subdirectory(z3)
+
+# ---------------------------------------------------------------------------- #
 
 add_library(z3
   ALIAS
