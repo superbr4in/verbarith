@@ -11,6 +11,8 @@ add_subdirectory(submodule)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fsanitize=address")
+
 add_subdirectory(test)
 
 set(WARNINGS_LIST
