@@ -13,8 +13,32 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(test)
 
-if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wconversion -Werror -Wextra -Wfatal-errors -Wimplicit-fallthrough -Wno-gnu-zero-variadic-macro-arguments -Wshadow")
-endif ()
+set(WARNINGS_LIST
+  # Treat all warnings as errors
+  -Werror
+  # Abort on the first error
+  -Wfatal-errors
+  # Common warnings
+  -Wall
+  -Wextra
+  # Prohibit non-standard C++
+  -Wpedantic
+  # Additional warnings
+  -Wcast-align
+  -Wconversion
+  -Wdouble-promotion
+  -Wimplicit-fallthrough
+  -Wmisleading-indentation
+  -Wnon-virtual-dtor
+  -Wnull-dereference
+  -Wold-style-cast
+  -Woverloaded-virtual
+  -Wshadow
+  -Wsign-conversion
+  -Wunused
+  # Disabled warnings
+  -Wno-gnu-zero-variadic-macro-arguments)
+string(JOIN " " WARNINGS ${WARNINGS_LIST})
+string(APPEND CMAKE_CXX_FLAGS ${WARNINGS})
 
 add_subdirectory(source)
