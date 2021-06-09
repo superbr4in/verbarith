@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 
-file(GLOB_RECURSE SOURCE_FILES *.cpp)
+file(GLOB SOURCE_FILES *.cpp)
 add_executable(formulae1_test
+    ${PROJECT_SOURCE_DIR}/test/test.cpp
     ${SOURCE_FILES})
 
 target_include_directories(formulae1_test
