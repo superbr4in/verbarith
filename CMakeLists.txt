@@ -23,15 +23,7 @@ set(ADDITIONAL_CXX_FLAGS_DEBUG_LIST
 string(JOIN " " ADDITIONAL_CXX_FLAGS_DEBUG ${ADDITIONAL_CXX_FLAGS_DEBUG_LIST})
 string(PREPEND       CMAKE_CXX_FLAGS_DEBUG ${ADDITIONAL_CXX_FLAGS_DEBUG} " ")
 
-# ---------------------------------------------------------------------------- #
-
-add_subdirectory(test)
-
-# ---------------------------------------------------------------------------- #
-
 set(ADDITIONAL_CXX_FLAGS_LIST
-  # Treat all warnings as errors
-  -Werror
   # Abort on the first error
   -Wfatal-errors
   # Common warnings
@@ -55,6 +47,15 @@ set(ADDITIONAL_CXX_FLAGS_LIST
   -Wno-gnu-zero-variadic-macro-arguments)
 string(JOIN " " ADDITIONAL_CXX_FLAGS ${ADDITIONAL_CXX_FLAGS_LIST})
 string(PREPEND       CMAKE_CXX_FLAGS ${ADDITIONAL_CXX_FLAGS} " ")
+
+# ---------------------------------------------------------------------------- #
+
+add_subdirectory(test)
+
+# ---------------------------------------------------------------------------- #
+
+# Treat all warnings as errors
+string(PREPEND CMAKE_CXX_FLAGS -Werror " ")
 
 # ---------------------------------------------------------------------------- #
 
